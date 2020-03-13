@@ -6,8 +6,8 @@
                     <Dropdown>
                         <Icon type="md-globe" size="18"/>
                         <DropdownMenu slot="list" :style="{width: '25px'}">
-                            <DropdownItem>English</DropdownItem>
                             <DropdownItem>简体中文</DropdownItem>
+                            <DropdownItem>English</DropdownItem>
                         </DropdownMenu>
                     </Dropdown>
                 </div>
@@ -31,7 +31,7 @@
                         <FormItem prop="automaticLogin">
                             <Row type="flex" justify="space-between" class="code-row-bg">
                                 <Checkbox v-model="form.auto" size="large">自动登录</Checkbox>
-                                <router-link to="/" :style="{fontSize: '16px'}">忘记密码</router-link>
+                                <router-link to="/">忘记密码</router-link>
                             </Row>
                         </FormItem>
                         <FormItem>
@@ -56,7 +56,7 @@
                                     </Col>
                                 </Col>
 
-                                <router-link to="/" :style="{fontSize: '16px'}">注册账户</router-link>
+                                <router-link to="/">注册账户</router-link>
                             </Row>
                         </FormItem>
                     </Form>
