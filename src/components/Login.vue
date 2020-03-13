@@ -1,39 +1,99 @@
 <template>
-    <Form ref="formInline" :model="formInline" :rules="ruleInline" inline>
-        <FormItem prop="user">
-            <Input type="text" v-model="formInline.user" placeholder="Username">
-                <Icon type="ios-person-outline" slot="prepend"></Icon>
-            </Input>
-        </FormItem>
-        <FormItem prop="password">
-            <Input type="password" v-model="formInline.password" placeholder="Password">
-                <Icon type="ios-lock-outline" slot="prepend"></Icon>
-            </Input>
-        </FormItem>
-        <FormItem>
-            <Button type="primary" @click="handleSubmit('formInline')">Signin</Button>
-        </FormItem>
-    </Form>
+    <div>
+        <Layout :style="{minHeight: '100vh'}">
+            <Content>
+                <div id="header">
+                    <Dropdown>
+                        <Icon type="md-globe" size="18"/>
+                        <DropdownMenu slot="list" :style="{width: '25px'}">
+                            <DropdownItem>English</DropdownItem>
+                            <DropdownItem>简体中文</DropdownItem>
+                        </DropdownMenu>
+                    </Dropdown>
+                </div>
+
+                <div id="loginForm">
+                    <Logo></Logo>
+                    <CenterBox :height="'30px'" :color="'#ABABAB'"
+                               :content="'数据分析组件为大数据分析系统提供优质解决方案'"></CenterBox>
+                    <CenterBox :height="'25px'"></CenterBox>
+                    <Form ref="formInline" :model="form" :rules="loginRule" :label-width="0">
+                        <FormItem prop="user">
+                            <Input type="text" v-model="form.user" placeholder="请输入用户名" size="large">
+                                <Icon type="ios-person-outline" slot="prefix" size="large"/>
+                            </Input>
+                        </FormItem>
+                        <FormItem prop="password">
+                            <Input type="password" v-model="form.password" placeholder="请输入密码" size="large">
+                                <Icon type="ios-lock-outline" slot="prefix" size="large"/>
+                            </Input>
+                        </FormItem>
+                        <FormItem prop="automaticLogin">
+                            <Row type="flex" justify="space-between" class="code-row-bg">
+                                <Checkbox v-model="form.auto" size="large">自动登录</Checkbox>
+                                <router-link to="/" :style="{fontSize: '16px'}">忘记密码</router-link>
+                            </Row>
+                        </FormItem>
+                        <FormItem>
+                            <Button type="primary" @click="handleSubmit('formInline')" size="large" long>
+                                登录
+                            </Button>
+                        </FormItem>
+                        <FormItem>
+                            <Row type="flex" justify="space-between" class="code-row-bg">
+                                <Col span="16" id="thirdPartyLogin">
+                                    <Col span="9">
+                                        其他登录方式
+                                    </Col>
+                                    <Col span="3">
+                                        <router-link to="/"><img src="../assets/icon_wechat.svg"></router-link>
+                                    </Col>
+                                    <Col span="3">
+                                        <router-link to="/"><img src="../assets/icon_qq.svg"></router-link>
+                                    </Col>
+                                    <Col span="3">
+                                        <router-link to="/"><img src="../assets/icon_weibo.svg"></router-link>
+                                    </Col>
+                                </Col>
+
+                                <router-link to="/" :style="{fontSize: '16px'}">注册账户</router-link>
+                            </Row>
+                        </FormItem>
+                    </Form>
+                </div>
+
+                <div id="footer">
+
+                </div>
+            </Content>
+        </Layout>
+    </div>
 </template>
+
 <script>
+    import CenterBox from "./CenterBox";
+    import Logo from "./Logo";
+
     export default {
         name: 'Login',
+        components: {CenterBox, Logo},
         data() {
             return {
-                formInline: {
+                form: {
                     user: '',
-                    password: ''
+                    password: '',
+                    auto: false
                 },
-                ruleInline: {
+                loginRule: {
                     user: [
-                        {required: true, message: 'Please fill in the user name', trigger: 'blur'}
+                        {required: true, message: '请输入用户名', trigger: 'blur'}
                     ],
                     password: [
-                        {required: true, message: 'Please fill in the password.', trigger: 'blur'},
+                        {required: true, message: '请输入密码', trigger: 'blur'},
                         {
                             type: 'string',
                             min: 6,
-                            message: 'The password length cannot be less than 6 bits',
+                            message: '密码长度不能小于6位',
                             trigger: 'blur'
                         }
                     ]
@@ -53,3 +113,27 @@
         }
     }
 </script>
+
+<style scoped>
+    div#header {
+        padding: 10px 50px;
+        height: 32px;
+        display: flex;
+        flex-direction: row-reverse;
+    }
+
+    div#loginForm {
+        width: 384px;
+        height: 100%;
+        margin-left: 50%;
+        margin-top: 50px;
+        transform: translate(-50%);
+    }
+
+    #thirdPartyLogin img {
+        width: 24px;
+        height: 24px;
+        margin-top: 10%;
+    }
+
+</style>
