@@ -3,13 +3,7 @@
         <Layout :style="{minHeight: '100vh'}">
             <Content>
                 <div id="header">
-                    <Dropdown>
-                        <Icon type="md-globe" size="18"/>
-                        <DropdownMenu slot="list" :style="{width: '25px'}">
-                            <DropdownItem>简体中文</DropdownItem>
-                            <DropdownItem>English</DropdownItem>
-                        </DropdownMenu>
-                    </Dropdown>
+                    <Internationalization></Internationalization>
                 </div>
 
                 <div id="loginForm">
@@ -46,17 +40,23 @@
                                         其他登录方式
                                     </Col>
                                     <Col span="3">
-                                        <router-link to="/"><img src="../assets/icon_wechat.svg"></router-link>
+                                        <router-link to="/">
+                                            <img src="../assets/icon_wechat.svg" alt="微信">
+                                        </router-link>
                                     </Col>
                                     <Col span="3">
-                                        <router-link to="/"><img src="../assets/icon_qq.svg"></router-link>
+                                        <router-link to="/">
+                                            <img src="../assets/icon_qq.svg" alt="QQ">
+                                        </router-link>
                                     </Col>
                                     <Col span="3">
-                                        <router-link to="/"><img src="../assets/icon_weibo.svg"></router-link>
+                                        <router-link to="/">
+                                            <img src="../assets/icon_weibo.svg" alt="微博">
+                                        </router-link>
                                     </Col>
                                 </Col>
 
-                                <router-link to="/">注册账户</router-link>
+                                <router-link to="/register">注册账户</router-link>
                             </Row>
                         </FormItem>
                     </Form>
@@ -71,12 +71,13 @@
 </template>
 
 <script>
-    import CenterBox from "./CenterBox";
-    import Logo from "./Logo";
+    import CenterBox from "../components/CenterBox";
+    import Logo from "../components/Logo";
+    import Internationalization from "../components/Internationalization";
 
     export default {
         name: 'Login',
-        components: {CenterBox, Logo},
+        components: {Internationalization, CenterBox, Logo},
         data() {
             return {
                 form: {
