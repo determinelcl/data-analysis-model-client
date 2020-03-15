@@ -1,8 +1,12 @@
 <template>
     <div class="layout">
         <Layout :style="{minHeight: '100vh'}">
-            <Sider ref="side1" hide-trigger collapsible :collapsed-width="78" v-model="isCollapsed">
-                <Menu active-name="1-2" theme="dark" width="auto" :class="menuitemClasses">
+            <Sider ref="side" hide-trigger collapsible :collapsed-width="78" v-model="isCollapsed"
+                   :style="{background: '#fff'}">
+                <Logo height="65px" font-size="20px" logo-space="3px" logo-size="50px"
+                      :style="{borderBottom: '1px solid #f5f5f6'}" :is-show="showLogoContent"/>
+
+                <Menu active-name="1-2" theme="light" width="auto" :class="menuitemClasses">
                     <MenuItem name="1-1">
                         <Icon type="ios-navigate"></Icon>
                         <span>Option 1</span>
@@ -21,7 +25,7 @@
                 <Header :style="{background: '#fff', boxShadow: '0 2px 3px 2px rgba(0,0,0,.1)', padding: 0}">
                     <Row type="flex" justify="space-between" class="code-row-bg">
                         <Col :style="{display:'flex',  padding: 0}">
-                            <Col class="col-flex col-cursor col-space" @click.native="collapsedSider">
+                            <Col class="col-flex col-cursor col-space" @click.native="collapsedSide">
                                 <Icon :class="rotateIcon" type="ios-menu" size="22"/>
                             </Col>
                             <Col class="col-flex col-cursor col-space">
@@ -88,9 +92,6 @@
                     </Row>
                 </Header>
                 <Content :style="{padding: '16px 16px 16px'}">
-                    <!--                    <Card>-->
-                    <!--                        <div style="height: 600px">Content</div>-->
-                    <!--                    </Card>-->
                     <Tabs type="card" closable @on-tab-remove="handleTabRemove">
                         <TabPane label="标签一" v-if="tab0">标签一的内容</TabPane>
                         <TabPane label="标签二" v-if="tab1">标签二的内容</TabPane>
@@ -105,16 +106,18 @@
 
 <script>
     import Internationalization from "../components/Internationalization";
+    import Logo from "../components/Logo";
 
     export default {
         name: "Home",
-        components: {Internationalization},
+        components: {Logo, Internationalization},
         data() {
             return {
                 isCollapsed: false,
                 tab0: true,
                 tab1: true,
-                tab2: true
+                tab2: true,
+                showLogoContent: true
             };
         },
         computed: {
@@ -135,8 +138,21 @@
             handleTabRemove(name) {
                 this['tab' + name] = false;
             },
-            collapsedSider() {
-                this.$refs.side1.toggleCollapse();
+            collapsedSide() {
+                let _this = this;
+
+                // 响应过渡动画
+                if (!_this.isCollapsed) {
+                    setTimeout(function () {
+                        _this.$refs.side.toggleCollapse();
+                    }, 600);
+                    _this.showLogoContent = !_this.showLogoContent;
+                } else {
+                    setTimeout(function () {
+                        _this.showLogoContent = !_this.showLogoContent;
+                    }, 500);
+                    _this.$refs.side.toggleCollapse();
+                }
             }
         }
     }
@@ -151,7 +167,7 @@
 <style scoped>
     .col-cursor:hover {
         cursor: pointer;
-        background-color: #E5E5E6;
+        background-color: #f5f5f6;
     }
 
     .col-space {
@@ -162,6 +178,14 @@
         display: flex;
         align-items: center;
         height: 100%;
+    }
+
+    .layout {
+        border: 1px solid #d7dde4;
+        background: #f5f7f9;
+        position: relative;
+        border-radius: 4px;
+        overflow: hidden;
     }
 
     .menu-item span {
