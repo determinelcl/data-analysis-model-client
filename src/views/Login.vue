@@ -91,12 +91,7 @@
                     ],
                     password: [
                         {required: true, message: '请输入密码', trigger: 'blur'},
-                        {
-                            type: 'string',
-                            min: 6,
-                            message: '密码长度不能小于6位',
-                            trigger: 'blur'
-                        }
+                        // {type: 'string', min: 6, message: '密码长度不能小于6位', trigger: 'blur'}
                     ]
                 }
             }
@@ -106,6 +101,7 @@
                 this.$refs[name].validate((valid) => {
                     if (valid) {
                         this.$Message.success('Success!');
+                        this.$router.push({name: 'home'});
                     } else {
                         this.$Message.error('Fail!');
                     }
