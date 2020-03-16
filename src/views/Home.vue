@@ -1,7 +1,7 @@
 <template>
     <div class="layout">
         <Layout :style="{minHeight: '100vh'}">
-            <Sider ref="side" hide-trigger collapsible :collapsed-width="78" v-model="isCollapsed"
+            <Sider ref="side" hide-trigger collapsible :collapsed-width="78" v-model="isCollapsed" width="256px"
                    :style="{background: sideBackground}">
                 <Logo height="65px" font-size="20px" logo-space="3px" logo-size="50px" font-color="#ffffff"
                       :style="{borderBottom: '1px solid #0E0E12'}" :is-show="showLogoContent"/>
@@ -69,9 +69,8 @@
                             <Col class="col-flex col-cursor col-space">
                                 <Icon type="md-radio-button-on" size="18"/>
                             </Col>
-                            <Col class="col-flex col-cursor col-space">
-                                <Icon type="md-expand" size="18"/>
-                                <!-- <Icon type="md-contract"  size="16"/> -->
+                            <Col class="col-flex col-cursor col-space" @click.native="toggleFullscreen">
+                                <Icon :type="isScreenFull ? 'md-contract' : 'md-expand'" size="18"/>
                             </Col>
                             <Col class="col-flex col-cursor col-space">
                                 <Icon type="md-notifications-outline" size="20"/>
@@ -128,6 +127,7 @@
 <script>
     import Internationalization from "../components/Internationalization";
     import Logo from "../components/Logo";
+    import screenfull from "screenfull"
 
     export default {
         name: "Home",
@@ -140,7 +140,8 @@
                 tab2: true,
                 showLogoContent: true,
                 sideBackground: '#191a23',
-                rotateRefreshIcon: 'menu-icon'
+                rotateRefreshIcon: 'menu-icon',
+                isScreenFull: false
             };
         },
         computed: {
@@ -184,6 +185,28 @@
                 setTimeout(function () {
                     _this.rotateRefreshIcon = 'menu-icon';
                 }, 1000);
+            },
+            toggleFullscreen() {
+                // 用于实现全屏展示
+                if (!screenfull.isEnabled) {
+                    this.$Message.warning('您的浏览器不支持全屏！');
+                    return false;
+                }
+
+                screenfull.toggle();
+                return true;
+            },
+        },
+
+        mounted() {
+            // 处理全屏切换的图标的切换
+            let _this = this;
+            let resizeTimer = null;
+            window.onresize = () => {
+                if (resizeTimer) clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function () {
+                    _this.isScreenFull = !_this.isScreenFull;
+                }, 100);
             }
         }
     }
@@ -221,10 +244,8 @@
     }
 
     .layout {
-        border: 1px solid #d7dde4;
         background: #f5f7f9;
         position: relative;
-        border-radius: 4px;
         overflow: hidden;
     }
 
