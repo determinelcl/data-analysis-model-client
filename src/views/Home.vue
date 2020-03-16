@@ -6,12 +6,13 @@
                 <Logo height="65px" font-size="20px" logo-space="3px" logo-size="50px" font-color="#ffffff"
                       :style="{borderBottom: '1px solid #0E0E12'}" :is-show="showLogoContent"/>
 
-                <Menu active-name="1-2" theme="dark" width="auto" accordion :open-names="['1']"
-                      :class="menuitemClasses" :style="{background: sideBackground}">
+                <Menu ref="sideMenu" active-name="1-2" theme="dark" width="auto" accordion
+                      :open-names="[selectedMenuNo]" :class="menuitemClasses" :style="{background: sideBackground}"
+                      @on-select="selectedMenu" @on-open-change="changeOpenedMenu">
                     <Submenu name="1">
                         <template slot="title">
                             <Icon type="ios-paper"/>
-                            内容管理
+                            <span>内容管理</span>
                         </template>
                         <MenuItem name="1-1">文章管理</MenuItem>
                         <MenuItem name="1-2">评论管理</MenuItem>
@@ -20,7 +21,7 @@
                     <Submenu name="2">
                         <template slot="title">
                             <Icon type="ios-people"/>
-                            用户管理
+                            <span>用户管理</span>
                         </template>
                         <MenuItem name="2-1">新增用户</MenuItem>
                         <MenuItem name="2-2">活跃用户</MenuItem>
@@ -28,7 +29,7 @@
                     <Submenu name="3">
                         <template slot="title">
                             <Icon type="ios-stats"/>
-                            统计分析
+                            <span>统计分析</span>
                         </template>
                         <MenuGroup title="使用">
                             <MenuItem name="3-1">新增和启动</MenuItem>
@@ -141,14 +142,17 @@
                 showLogoContent: true,
                 sideBackground: '#191a23',
                 rotateRefreshIcon: 'menu-icon',
-                isScreenFull: false
+                isScreenFull: false,
+                selectedMenuNo: '1'
             };
         },
         computed: {
             menuitemClasses: function () {
                 return [
                     'menu-item',
-                    this.isCollapsed ? 'collapsed-menu' : ''
+                    this.isCollapsed ? 'collapsed-menu' : '',
+                    // 实现关闭二级菜单项
+                    this.isCollapsed ? 'collapsed-menu-item' : ''
                 ]
             },
             rotateIcon() {
@@ -196,6 +200,14 @@
                 screenfull.toggle();
                 return true;
             },
+            // 获取开启的菜单项
+            changeOpenedMenu(menuNo) {
+                console.log(menuNo)
+            },
+            // 获取选中的菜单项
+            selectedMenu(menuItemName) {
+                console.log(menuItemName)
+            }
         },
 
         mounted() {
@@ -225,6 +237,10 @@
         background-color: #0E0E12 !important;
     }
 
+    /deep/ .collapsed-menu-item ul.ivu-menu {
+        display: none;
+    }
+
 </style>
 
 <style scoped>
@@ -249,6 +265,7 @@
         overflow: hidden;
     }
 
+    /*==========================设置侧边导航栏伸缩样式：开始============================*/
     .menu-item span {
         display: inline-block;
         overflow: hidden;
@@ -277,6 +294,8 @@
         vertical-align: middle;
         font-size: 22px;
     }
+
+    /*==========================设置侧边导航栏伸缩样式：结束============================*/
 
     .menu-icon {
         transition: all .3s;
