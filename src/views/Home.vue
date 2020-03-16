@@ -2,23 +2,44 @@
     <div class="layout">
         <Layout :style="{minHeight: '100vh'}">
             <Sider ref="side" hide-trigger collapsible :collapsed-width="78" v-model="isCollapsed"
-                   :style="{background: '#fff'}">
-                <Logo height="65px" font-size="20px" logo-space="3px" logo-size="50px"
-                      :style="{borderBottom: '1px solid #f5f5f6'}" :is-show="showLogoContent"/>
+                   :style="{background: sideBackground}">
+                <Logo height="65px" font-size="20px" logo-space="3px" logo-size="50px" font-color="#ffffff"
+                      :style="{borderBottom: '1px solid #0E0E12'}" :is-show="showLogoContent"/>
 
-                <Menu active-name="1-2" theme="light" width="auto" :class="menuitemClasses">
-                    <MenuItem name="1-1">
-                        <Icon type="ios-navigate"></Icon>
-                        <span>Option 1</span>
-                    </MenuItem>
-                    <MenuItem name="1-2">
-                        <Icon type="ios-navigate"></Icon>
-                        <span>Option 2</span>
-                    </MenuItem>
-                    <MenuItem name="1-3">
-                        <Icon type="ios-navigate"></Icon>
-                        <span>Option 3</span>
-                    </MenuItem>
+                <Menu active-name="1-2" theme="dark" width="auto" accordion :open-names="['1']"
+                      :class="menuitemClasses" :style="{background: sideBackground}">
+                    <Submenu name="1">
+                        <template slot="title">
+                            <Icon type="ios-paper"/>
+                            内容管理
+                        </template>
+                        <MenuItem name="1-1">文章管理</MenuItem>
+                        <MenuItem name="1-2">评论管理</MenuItem>
+                        <MenuItem name="1-3">举报管理</MenuItem>
+                    </Submenu>
+                    <Submenu name="2">
+                        <template slot="title">
+                            <Icon type="ios-people"/>
+                            用户管理
+                        </template>
+                        <MenuItem name="2-1">新增用户</MenuItem>
+                        <MenuItem name="2-2">活跃用户</MenuItem>
+                    </Submenu>
+                    <Submenu name="3">
+                        <template slot="title">
+                            <Icon type="ios-stats"/>
+                            统计分析
+                        </template>
+                        <MenuGroup title="使用">
+                            <MenuItem name="3-1">新增和启动</MenuItem>
+                            <MenuItem name="3-2">活跃分析</MenuItem>
+                            <MenuItem name="3-3">时段分析</MenuItem>
+                        </MenuGroup>
+                        <MenuGroup title="留存">
+                            <MenuItem name="3-4">用户留存</MenuItem>
+                            <MenuItem name="3-5">流失用户</MenuItem>
+                        </MenuGroup>
+                    </Submenu>
                 </Menu>
             </Sider>
             <Layout>
@@ -28,8 +49,8 @@
                             <Col class="col-flex col-cursor col-space" @click.native="collapsedSide">
                                 <Icon :class="rotateIcon" type="ios-menu" size="22"/>
                             </Col>
-                            <Col class="col-flex col-cursor col-space">
-                                <Icon type="md-refresh" size="18"/>
+                            <Col class="col-flex col-cursor col-space" @click.native="refreshContent">
+                                <Icon :class="rotateRefreshIcon" type="md-refresh" size="18"/>
                             </Col>
                             <Col class="col-flex col-space">
                                 <Breadcrumb>
@@ -117,7 +138,9 @@
                 tab0: true,
                 tab1: true,
                 tab2: true,
-                showLogoContent: true
+                showLogoContent: true,
+                sideBackground: '#191a23',
+                rotateRefreshIcon: 'menu-icon'
             };
         },
         computed: {
@@ -153,6 +176,14 @@
                     }, 500);
                     _this.$refs.side.toggleCollapse();
                 }
+            },
+            refreshContent() {
+                // 用户旋转刷新的图标
+                this.rotateRefreshIcon = 'rotate-refresh-icon';
+                let _this = this;
+                setTimeout(function () {
+                    _this.rotateRefreshIcon = 'menu-icon';
+                }, 1000);
             }
         }
     }
@@ -162,6 +193,15 @@
     /deep/ .ivu-input {
         border: none !important;
     }
+
+    /deep/ .ivu-menu-submenu-title {
+        background-color: #191a23 !important;
+    }
+
+    /deep/ .ivu-menu {
+        background-color: #0E0E12 !important;
+    }
+
 </style>
 
 <style scoped>
@@ -215,5 +255,29 @@
         transition: font-size .2s ease .2s, transform .2s ease .2s;
         vertical-align: middle;
         font-size: 22px;
+    }
+
+    .menu-icon {
+        transition: all .3s;
+    }
+
+    .rotate-icon {
+        transform: rotate(-90deg);
+    }
+
+    /*实现旋转动画的样式*/
+    .rotate-refresh-icon {
+        outline: none;
+        animation: rotate-refresh 1s;
+    }
+
+    @keyframes rotate-refresh {
+        from {
+            transform: rotate(0deg)
+        }
+        to {
+            transform: rotate(360deg);
+            transition: all 0.6s;
+        }
     }
 </style>
