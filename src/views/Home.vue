@@ -38,9 +38,10 @@
                         <MenuItem name="3-5">流失用户</MenuItem>
                     </Submenu>
 
-                    <Submenu name="1" v-show="isCollapsed">
+                    <Submenu name="1025" v-show="isCollapsed"
+                             :class="(selectedMenuItemNo + 1024) === 1025 ? 'collapsed-menu-item-selected' : ''">
                         <template slot="title">
-                            <Dropdown placement="right-start">
+                            <Dropdown placement="right-start" @on-click="selectedDropdownMenu">
                                 <Icon type="ios-paper" size="22"/>
                                 <DropdownMenu slot="list">
                                     <DropdownItem name="1-1">文章管理</DropdownItem>
@@ -51,9 +52,10 @@
                         </template>
                     </Submenu>
 
-                    <Submenu name="2" v-show="isCollapsed">
+                    <Submenu name="1026" v-show="isCollapsed"
+                             :class="(selectedMenuItemNo + 1024) === 1026 ? 'collapsed-menu-item-selected' : ''">
                         <template slot="title">
-                            <Dropdown placement="right-start">
+                            <Dropdown placement="right-start" @on-click="selectedDropdownMenu">
                                 <Icon type="ios-people" size="22"/>
                                 <DropdownMenu slot="list">
                                     <DropdownItem name="2-1">新增用户</DropdownItem>
@@ -63,9 +65,10 @@
                         </template>
                     </Submenu>
 
-                    <Submenu name="5" v-show="isCollapsed">
+                    <Submenu name="1027" v-show="isCollapsed"
+                             :class="(selectedMenuItemNo + 1024) === 1027 ? 'collapsed-menu-item-selected' : ''">
                         <template slot="title">
-                            <Dropdown placement="right-start">
+                            <Dropdown placement="right-start" @on-click="selectedDropdownMenu">
                                 <Icon type="ios-stats" size="22"/>
                                 <DropdownMenu slot="list">
                                     <DropdownItem name="3-1">新增和启动</DropdownItem>
@@ -181,7 +184,8 @@
                 rotateRefreshIcon: 'menu-icon',
                 isScreenFull: false,
                 selectedMenuNo: '1',
-                dropdownMenuIconColor: '#ACADAF'
+                dropdownMenuIconColor: '#ACADAF',
+                selectedMenuItemNo: 1
             };
         },
         computed: {
@@ -244,11 +248,18 @@
             },
             // 获取选中的菜单项
             selectedMenu(menuItemName) {
-                console.log(menuItemName)
+                if (menuItemName === '' || menuItemName === null) return;
+
+                this.selectedMenuItemNo = parseInt(menuItemName.slice(0, menuItemName.indexOf('-')));
+            },
+            // 获取选中的下拉菜单项
+            selectedDropdownMenu(menuItemName) {
+                this.selectedMenu(menuItemName)
             }
         },
 
         mounted() {
+            console.log(this.$refs);
             // 处理全屏切换的图标的切换
             let _this = this;
             let resizeTimer = null;
@@ -287,13 +298,13 @@
     }
 
     /*设置折叠后的被选中的菜单项的背景颜色*/
-    /deep/ .collapsed-menu-item li.ivu-menu-opened {
+    /deep/ .collapsed-menu-item-selected div.ivu-menu-submenu-title {
         background-color: #0E0E12 !important;
     }
 
     /*设置折叠后的下拉菜单项的位置及颜色*/
     /deep/ .collapsed-menu-item div.ivu-select-dropdown {
-        top: 8px !important;
+        top: 0px !important;
         left: 80px !important;
         background-color: #0E0E12 !important;
     }
