@@ -368,6 +368,10 @@
 </style>
 
 <style scoped>
+    .col-cursor:hover {
+        cursor: pointer;
+        background-color: #f5f5f6;
+    }
 
     .col-space {
         padding: 0 8px;
