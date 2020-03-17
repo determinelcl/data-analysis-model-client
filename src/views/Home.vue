@@ -152,8 +152,8 @@
                         </Col>
                     </Row>
                 </Header>
-                <Content :style="{padding: '16px 16px 16px'}">
-                    <Tabs type="card" closable @on-tab-remove="handleTabRemove">
+                <Content :style="{padding: '16px 16px 16px'}" class="tabs-style">
+                    <Tabs type="card" closable @on-tab-remove="handleTabRemove" :animated="false">
                         <TabPane label="标签一" v-if="tab0">标签一的内容</TabPane>
                         <TabPane label="标签二" v-if="tab1">标签二的内容</TabPane>
                         <TabPane label="标签三" v-if="tab2">标签三的内容</TabPane>
@@ -290,6 +290,36 @@
 </script>
 
 <style lang="less" scoped>
+    /*================================调整标签页的标签样式：开始================================*/
+    /deep/ .ivu-layout-header {
+        box-shadow: 0 1px 4px rgba(0, 21, 41, .08) !important;
+    }
+
+    /deep/ .ivu-layout-content {
+        padding: 0 !important;
+    }
+
+    /deep/ .ivu-tabs-bar {
+        padding: 6px 12px !important;
+        margin: 0 !important;
+    }
+
+    /deep/ .ivu-tabs-content {
+        padding: 0 24px;
+    }
+
+    /deep/ .tabs-style > .ivu-tabs.ivu-tabs-card > .ivu-tabs-bar .ivu-tabs-tab {
+        border-color: transparent !important;
+        background-color: #ffffff !important;
+        border-radius: 3px !important;
+    }
+
+    /deep/ .tabs-style div.ivu-tabs-bar {
+        border-color: transparent !important;
+    }
+
+    /*================================调整标签页的标签样式：结束================================*/
+
     /deep/ .ivu-input {
         border: none !important;
     }
@@ -338,14 +368,6 @@
 </style>
 
 <style scoped>
-    .dropdown-menu-title-div {
-        width: 100%;
-        display: flex;
-        height: 50px;
-        align-items: center;
-        justify-content: center;
-        background-color: #191a23;
-    }
 
     .col-space {
         padding: 0 8px;
