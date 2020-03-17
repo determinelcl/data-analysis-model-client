@@ -9,7 +9,7 @@
                 <Menu ref="sideMenu" active-name="1-2" theme="dark" width="auto" accordion
                       :open-names="[selectedMenuNo]" :class="menuitemClasses" :style="{background: sideBackground}"
                       @on-select="selectedMenu" @on-open-change="changeOpenedMenu">
-                    <Submenu name="1">
+                    <Submenu name="1" v-show="!isCollapsed">
                         <template slot="title">
                             <Icon type="ios-paper"/>
                             <span>内容管理</span>
@@ -18,7 +18,7 @@
                         <MenuItem name="1-2">评论管理</MenuItem>
                         <MenuItem name="1-3">举报管理</MenuItem>
                     </Submenu>
-                    <Submenu name="2">
+                    <Submenu name="2" v-show="!isCollapsed">
                         <template slot="title">
                             <Icon type="ios-people"/>
                             <span>用户管理</span>
@@ -26,21 +26,58 @@
                         <MenuItem name="2-1">新增用户</MenuItem>
                         <MenuItem name="2-2">活跃用户</MenuItem>
                     </Submenu>
-                    <Submenu name="3">
+                    <Submenu name="3" v-show="!isCollapsed">
                         <template slot="title">
                             <Icon type="ios-stats"/>
                             <span>统计分析</span>
                         </template>
-                        <MenuGroup title="使用">
-                            <MenuItem name="3-1">新增和启动</MenuItem>
-                            <MenuItem name="3-2">活跃分析</MenuItem>
-                            <MenuItem name="3-3">时段分析</MenuItem>
-                        </MenuGroup>
-                        <MenuGroup title="留存">
-                            <MenuItem name="3-4">用户留存</MenuItem>
-                            <MenuItem name="3-5">流失用户</MenuItem>
-                        </MenuGroup>
+                        <MenuItem name="3-1">新增和启动</MenuItem>
+                        <MenuItem name="3-2">活跃分析</MenuItem>
+                        <MenuItem name="3-3">时段分析</MenuItem>
+                        <MenuItem name="3-4">用户留存</MenuItem>
+                        <MenuItem name="3-5">流失用户</MenuItem>
                     </Submenu>
+
+                    <Submenu name="1" v-show="isCollapsed">
+                        <template slot="title">
+                            <Dropdown placement="right-start">
+                                <Icon type="ios-paper" size="22"/>
+                                <DropdownMenu slot="list">
+                                    <DropdownItem name="1-1">文章管理</DropdownItem>
+                                    <DropdownItem name="1-2">评论管理</DropdownItem>
+                                    <DropdownItem name="1-3">举报管理</DropdownItem>
+                                </DropdownMenu>
+                            </Dropdown>
+                        </template>
+                    </Submenu>
+
+                    <Submenu name="2" v-show="isCollapsed">
+                        <template slot="title">
+                            <Dropdown placement="right-start">
+                                <Icon type="ios-people" size="22"/>
+                                <DropdownMenu slot="list">
+                                    <DropdownItem name="2-1">新增用户</DropdownItem>
+                                    <DropdownItem name="2-2">活跃用户</DropdownItem>
+                                </DropdownMenu>
+                            </Dropdown>
+                        </template>
+                    </Submenu>
+
+                    <Submenu name="5" v-show="isCollapsed">
+                        <template slot="title">
+                            <Dropdown placement="right-start">
+                                <Icon type="ios-stats" size="22"/>
+                                <DropdownMenu slot="list">
+                                    <DropdownItem name="3-1">新增和启动</DropdownItem>
+                                    <DropdownItem name="3-2">活跃分析</DropdownItem>
+                                    <DropdownItem name="3-3">时段分析</DropdownItem>
+                                    <DropdownItem name="3-4">用户留存</DropdownItem>
+                                    <DropdownItem name="3-5">流失用户</DropdownItem>
+                                </DropdownMenu>
+                            </Dropdown>
+                        </template>
+                    </Submenu>
+
                 </Menu>
             </Sider>
             <Layout>
@@ -143,7 +180,8 @@
                 sideBackground: '#191a23',
                 rotateRefreshIcon: 'menu-icon',
                 isScreenFull: false,
-                selectedMenuNo: '1'
+                selectedMenuNo: '1',
+                dropdownMenuIconColor: '#ACADAF'
             };
         },
         computed: {
@@ -233,20 +271,53 @@
         background-color: #191a23 !important;
     }
 
+
     /deep/ .ivu-menu {
         background-color: #0E0E12 !important;
     }
 
+    /*设置折叠后的菜单项的子菜单项目的隐藏*/
     /deep/ .collapsed-menu-item ul.ivu-menu {
         display: none;
     }
 
+    /*设置折叠后的菜单项的箭头图标的隐藏*/
+    /deep/ .collapsed-menu-item i.ivu-icon-ios-arrow-down {
+        display: none;
+    }
+
+    /*设置折叠后的被选中的菜单项的背景颜色*/
+    /deep/ .collapsed-menu-item li.ivu-menu-opened {
+        background-color: #0E0E12 !important;
+    }
+
+    /*设置折叠后的下拉菜单项的位置及颜色*/
+    /deep/ .collapsed-menu-item div.ivu-select-dropdown {
+        top: 8px !important;
+        left: 80px !important;
+        background-color: #0E0E12 !important;
+    }
+
+    /*设置指针指向折叠后的下拉菜单项的字体颜色*/
+    /deep/ .collapsed-menu-item li.ivu-dropdown-item {
+        color: #ACADAF !important;
+    }
+
+    /*设置指针指向折叠后的下拉菜单项的字体和背景颜色*/
+    /deep/ .collapsed-menu-item li.ivu-dropdown-item:hover {
+        color: #ffffff !important;
+        background-color: #2575EC !important;
+    }
 </style>
 
 <style scoped>
-    .col-cursor:hover {
-        cursor: pointer;
-        background-color: #f5f5f6;
+    .dropdown-menu-title-div {
+        width: 100%;
+        display: flex;
+        height: 50px;
+        align-items: center;
+        justify-content: center;
+        background-color: #191a23;
     }
 
     .col-space {
