@@ -6,8 +6,8 @@
                 <Logo height="65px" font-size="20px" logo-space="3px" logo-size="50px" font-color="#ffffff"
                       :style="{borderBottom: '1px solid #0E0E12'}" :is-show="showLogoContent"/>
 
-                <Menu ref="sideMenu" active-name="1-2" theme="dark" width="auto" accordion
-                      :open-names="[selectedMenuNo]" :class="menuitemClasses" :style="{background: sideBackground}"
+                <Menu ref="sideMenu" :active-name="activeMenuName" theme="dark" width="auto" accordion
+                      :open-names="[openMenuName]" :class="menuitemClasses" :style="{background: sideBackground}"
                       @on-select="selectedMenu" @on-open-change="changeOpenedMenu">
                     <Submenu name="1" v-show="!isCollapsed">
                         <template slot="title">
@@ -183,7 +183,8 @@
                 sideBackground: '#191a23',
                 rotateRefreshIcon: 'menu-icon',
                 isScreenFull: false,
-                selectedMenuNo: '1',
+                openMenuName: '1',
+                activeMenuName: '1-2',
                 dropdownMenuIconColor: '#ACADAF',
                 selectedMenuItemNo: 1
             };
@@ -222,6 +223,7 @@
                         _this.showLogoContent = !_this.showLogoContent;
                     }, 500);
                     _this.$refs.side.toggleCollapse();
+                    _this.updateChangedMenu();
                 }
             },
             refreshContent() {
@@ -242,24 +244,38 @@
                 screenfull.toggle();
                 return true;
             },
+            // 更新改变的展开后的菜单项目的展示
+            updateChangedMenu() {
+                let _this = this;
+                _this.$refs.sideMenu.openedNames = this.openMenuName;
+                this.$nextTick(() => {
+                    _this.$refs.sideMenu.updateOpened();
+                    _this.$refs.sideMenu.updateActiveName();
+                });
+            },
             // 获取开启的菜单项
             changeOpenedMenu(menuNo) {
-                console.log(menuNo)
+                console.log(menuNo);
             },
             // 获取选中的菜单项
             selectedMenu(menuItemName) {
                 if (menuItemName === '' || menuItemName === null) return;
 
-                this.selectedMenuItemNo = parseInt(menuItemName.slice(0, menuItemName.indexOf('-')));
+                let number = menuItemName.slice(0, menuItemName.indexOf('-'));
+                this.selectedMenuItemNo = parseInt(number);
+                this.openMenuName = number;
+                this.activeMenuName = menuItemName;
+
+                console.log(this.$refs.sideMenu);
             },
             // 获取选中的下拉菜单项
             selectedDropdownMenu(menuItemName) {
+                console.log(menuItemName);
                 this.selectedMenu(menuItemName)
             }
         },
 
         mounted() {
-            console.log(this.$refs);
             // 处理全屏切换的图标的切换
             let _this = this;
             let resizeTimer = null;
