@@ -21,7 +21,7 @@
                     </Submenu>
 
                     <Submenu :name="submenu.id + 1024" v-show="isCollapsed"
-                             v-for="submenu in menu.menuList" :key="submenu.id"
+                             v-for="submenu in menu.menuList" :key="submenu.id + 1024"
                              :class="menu.openMenuName === submenu.id ? 'collapsed-menu-item-selected' : ''">
                         <template slot="title">
                             <Dropdown placement="right-start" @on-click="selectedDropdownMenu">
@@ -68,8 +68,15 @@
                             <Col class="col-flex col-cursor col-space" @click.native="toggleFullscreen">
                                 <Icon :type="isScreenFull ? 'md-contract' : 'md-expand'" size="18"/>
                             </Col>
-                            <Col class="col-flex col-cursor col-space">
-                                <Icon type="md-notifications-outline" size="20"/>
+                            <Col class="col-flex col-cursor col-space notifications-poptip">
+                                <Poptip placement="bottom" width="300" padding="8px 0">
+                                    <Icon type="md-notifications-outline" size="20"/>
+                                    <Tabs :animated="false" slot="content">
+                                        <TabPane label="标签一">标签一的内容</TabPane>
+                                        <TabPane label="标签二">标签二的内容</TabPane>
+                                        <TabPane label="标签三">标签三的内容</TabPane>
+                                    </Tabs>
+                                </Poptip>
                             </Col>
                             <Col class="col-flex col-cursor col-space">
                                 <Dropdown>
@@ -101,8 +108,13 @@
                             <Col class="col-flex col-cursor col-space">
                                 <Internationalization></Internationalization>
                             </Col>
-                            <Col class="col-flex col-cursor col-space">
+                            <Col class="col-flex col-cursor col-space" @click.native="showMoreInformation = true">
                                 <Icon type="md-more" size="22"/>
+                                <Drawer title="More Information Preview" :closable="false" v-model="showMoreInformation">
+                                    <p>Some contents...</p>
+                                    <p>Some contents...</p>
+                                    <p>Some contents...</p>
+                                </Drawer>
                             </Col>
                         </Col>
                     </Row>
@@ -137,6 +149,7 @@
                 showLogoContent: true,
                 rotateRefreshIcon: 'menu-icon',
                 isScreenFull: false,
+                showMoreInformation: false,
                 menu: {
                     openMenuName: 1,
                     activeMenuName: '1-2',
@@ -270,6 +283,20 @@
 </script>
 
 <style lang="less" scoped>
+    /*================================调整通知的tab页的居中：开始===================================*/
+    /deep/ .ivu-layout-header .notifications-poptip div.ivu-poptip-arrow {
+        display: none;
+    }
+
+    /deep/ .ivu-layout-header .notifications-poptip .ivu-poptip-popper {
+        top: 60px !important;
+    }
+
+    /deep/ .ivu-layout-header .notifications-poptip .ivu-tabs-nav-scroll {
+        margin-left: 23px;
+    }
+    /*================================调整通知的tab页的居中：结束===================================*/
+
     /*================================调整标签页的标签样式：开始================================*/
     /deep/ .ivu-layout-header {
         box-shadow: 0 1px 4px rgba(0, 21, 41, .08) !important;
@@ -279,12 +306,12 @@
         padding: 0 !important;
     }
 
-    /deep/ .ivu-tabs-bar {
+    /deep/ .ivu-layout-content .ivu-tabs-bar {
         padding: 6px 12px !important;
         margin: 0 !important;
     }
 
-    /deep/ .ivu-tabs-content {
+    /deep/ .ivu-layout-content .ivu-tabs-content {
         padding: 0 24px;
     }
 
@@ -354,7 +381,7 @@
     }
 
     .col-space {
-        padding: 0 8px;
+        padding: 0 10px;
     }
 
     .col-flex {
