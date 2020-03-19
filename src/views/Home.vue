@@ -2,80 +2,35 @@
     <div class="layout">
         <Layout :style="{minHeight: '100vh'}">
             <Sider ref="side" hide-trigger collapsible :collapsed-width="78" v-model="isCollapsed" width="256px"
-                   :style="{background: sideBackground}">
+                   :style="{background: '#191a23', boxShadow: '2px 0 6px rgba(0,21,41,.35)', zIndex: 3}">
                 <Logo height="65px" font-size="20px" logo-space="3px" logo-size="50px" font-color="#ffffff"
                       :style="{borderBottom: '1px solid #0E0E12'}" :is-show="showLogoContent"/>
 
-                <Menu ref="sideMenu" :active-name="activeMenuName" theme="dark" width="auto" accordion
-                      :open-names="[openMenuName]" :class="menuitemClasses" :style="{background: sideBackground}"
+                <Menu ref="sideMenu" :active-name="menu.activeMenuName" theme="dark" width="auto" accordion
+                      :open-names="[menu.openMenuName]" :class="menuitemClasses" :style="{background: '#191a23'}"
                       @on-select="selectedMenu" @on-open-change="changeOpenedMenu">
-                    <Submenu name="1" v-show="!isCollapsed">
+                    <Submenu :name="submenu.id" v-show="!isCollapsed"
+                             v-for="submenu in menu.menuList" :key="submenu.id">
                         <template slot="title">
-                            <Icon type="ios-paper"/>
-                            <span>内容管理</span>
+                            <Icon :type="submenu.icon"/>
+                            <span>{{ submenu.name }}</span>
                         </template>
-                        <MenuItem name="1-1">文章管理</MenuItem>
-                        <MenuItem name="1-2">评论管理</MenuItem>
-                        <MenuItem name="1-3">举报管理</MenuItem>
-                    </Submenu>
-                    <Submenu name="2" v-show="!isCollapsed">
-                        <template slot="title">
-                            <Icon type="ios-people"/>
-                            <span>用户管理</span>
-                        </template>
-                        <MenuItem name="2-1">新增用户</MenuItem>
-                        <MenuItem name="2-2">活跃用户</MenuItem>
-                    </Submenu>
-                    <Submenu name="3" v-show="!isCollapsed">
-                        <template slot="title">
-                            <Icon type="ios-stats"/>
-                            <span>统计分析</span>
-                        </template>
-                        <MenuItem name="3-1">新增和启动</MenuItem>
-                        <MenuItem name="3-2">活跃分析</MenuItem>
-                        <MenuItem name="3-3">时段分析</MenuItem>
-                        <MenuItem name="3-4">用户留存</MenuItem>
-                        <MenuItem name="3-5">流失用户</MenuItem>
+                        <MenuItem :name="menuItem.id" v-for="menuItem in submenu.itemList" :key="menuItem.id">
+                            {{ menuItem.name }}
+                        </MenuItem>
                     </Submenu>
 
-                    <Submenu name="1025" v-show="isCollapsed"
-                             :class="(selectedMenuItemNo + 1024) === 1025 ? 'collapsed-menu-item-selected' : ''">
+                    <Submenu :name="submenu.id + 1024" v-show="isCollapsed"
+                             v-for="submenu in menu.menuList" :key="submenu.id"
+                             :class="menu.openMenuName === submenu.id ? 'collapsed-menu-item-selected' : ''">
                         <template slot="title">
                             <Dropdown placement="right-start" @on-click="selectedDropdownMenu">
-                                <Icon type="ios-paper" size="22"/>
+                                <Icon :type="submenu.icon" size="22"/>
                                 <DropdownMenu slot="list">
-                                    <DropdownItem name="1-1">文章管理</DropdownItem>
-                                    <DropdownItem name="1-2">评论管理</DropdownItem>
-                                    <DropdownItem name="1-3">举报管理</DropdownItem>
-                                </DropdownMenu>
-                            </Dropdown>
-                        </template>
-                    </Submenu>
-
-                    <Submenu name="1026" v-show="isCollapsed"
-                             :class="(selectedMenuItemNo + 1024) === 1026 ? 'collapsed-menu-item-selected' : ''">
-                        <template slot="title">
-                            <Dropdown placement="right-start" @on-click="selectedDropdownMenu">
-                                <Icon type="ios-people" size="22"/>
-                                <DropdownMenu slot="list">
-                                    <DropdownItem name="2-1">新增用户</DropdownItem>
-                                    <DropdownItem name="2-2">活跃用户</DropdownItem>
-                                </DropdownMenu>
-                            </Dropdown>
-                        </template>
-                    </Submenu>
-
-                    <Submenu name="1027" v-show="isCollapsed"
-                             :class="(selectedMenuItemNo + 1024) === 1027 ? 'collapsed-menu-item-selected' : ''">
-                        <template slot="title">
-                            <Dropdown placement="right-start" @on-click="selectedDropdownMenu">
-                                <Icon type="ios-stats" size="22"/>
-                                <DropdownMenu slot="list">
-                                    <DropdownItem name="3-1">新增和启动</DropdownItem>
-                                    <DropdownItem name="3-2">活跃分析</DropdownItem>
-                                    <DropdownItem name="3-3">时段分析</DropdownItem>
-                                    <DropdownItem name="3-4">用户留存</DropdownItem>
-                                    <DropdownItem name="3-5">流失用户</DropdownItem>
+                                    <DropdownItem :name="menuItem.id"
+                                                  v-for="menuItem in submenu.itemList" :key="menuItem.id">
+                                        {{ menuItem.name }}
+                                    </DropdownItem>
                                 </DropdownMenu>
                             </Dropdown>
                         </template>
@@ -180,13 +135,39 @@
                 tab1: true,
                 tab2: true,
                 showLogoContent: true,
-                sideBackground: '#191a23',
                 rotateRefreshIcon: 'menu-icon',
                 isScreenFull: false,
-                openMenuName: '1',
-                activeMenuName: '1-2',
-                dropdownMenuIconColor: '#ACADAF',
-                selectedMenuItemNo: 1
+                menu: {
+                    openMenuName: 1,
+                    activeMenuName: '1-2',
+                    menuList: [
+                        {
+                            id: 1, icon: 'ios-paper', name: '内容管理',
+                            itemList: [
+                                {id: '1-1', name: '文章管理', url: ''},
+                                {id: '1-2', name: '评论管理', url: ''},
+                                {id: '1-3', name: '举报管理', url: ''}
+                            ]
+                        },
+                        {
+                            id: 2, icon: 'ios-people', name: '用户管理',
+                            itemList: [
+                                {id: '2-1', name: '新增用户', url: ''},
+                                {id: '2-2', name: '活跃用户', url: ''}
+                            ]
+                        },
+                        {
+                            id: 3, icon: 'ios-stats', name: '统计分析',
+                            itemList: [
+                                {id: '3-1', name: '新增和启动', url: ''},
+                                {id: '3-2', name: '活跃分析', url: ''},
+                                {id: '3-3', name: '时段分析', url: ''},
+                                {id: '3-4', name: '用户留存', url: ''},
+                                {id: '3-5', name: '流失用户', url: ''}
+                            ]
+                        },
+                    ]
+                }
             };
         },
         computed: {
@@ -247,7 +228,7 @@
             // 更新改变的展开后的菜单项目的展示
             updateChangedMenu() {
                 let _this = this;
-                _this.$refs.sideMenu.openedNames = this.openMenuName;
+                _this.$refs.sideMenu.openedNames = this.menu.openMenuName;
                 this.$nextTick(() => {
                     _this.$refs.sideMenu.updateOpened();
                     _this.$refs.sideMenu.updateActiveName();
@@ -262,9 +243,8 @@
                 if (menuItemName === '' || menuItemName === null) return;
 
                 let number = menuItemName.slice(0, menuItemName.indexOf('-'));
-                this.selectedMenuItemNo = parseInt(number);
-                this.openMenuName = number;
-                this.activeMenuName = menuItemName;
+                this.menu.openMenuName = parseInt(number);
+                this.menu.activeMenuName = menuItemName;
 
                 console.log(this.$refs.sideMenu);
             },
