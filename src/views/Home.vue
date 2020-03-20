@@ -15,7 +15,8 @@
                             <Icon :type="submenu.icon"/>
                             <span>{{ submenu.name }}</span>
                         </template>
-                        <MenuItem :name="menuItem.id" v-for="menuItem in submenu.itemList" :key="menuItem.id">
+                        <MenuItem :name="menuItem.id" v-for="menuItem in submenu.itemList" :key="menuItem.id"
+                                  :to="menuItem.url">
                             {{ menuItem.name }}
                         </MenuItem>
                     </Submenu>
@@ -110,7 +111,8 @@
                             </Col>
                             <Col class="col-flex col-cursor col-space" @click.native="showMoreInformation = true">
                                 <Icon type="md-more" size="22"/>
-                                <Drawer title="More Information Preview" :closable="false" v-model="showMoreInformation">
+                                <Drawer title="More Information Preview" :closable="false"
+                                        v-model="showMoreInformation">
                                     <p>Some contents...</p>
                                     <p>Some contents...</p>
                                     <p>Some contents...</p>
@@ -121,9 +123,9 @@
                 </Header>
                 <Content :style="{padding: '16px 16px 16px'}" class="tabs-style">
                     <Tabs type="card" closable @on-tab-remove="handleTabRemove" :animated="false">
-                        <TabPane label="标签一" v-if="tab0">标签一的内容</TabPane>
-                        <TabPane label="标签二" v-if="tab1">标签二的内容</TabPane>
-                        <TabPane label="标签三" v-if="tab2">标签三的内容</TabPane>
+                        <TabPane label="标签一" v-if="tab0">
+                            <router-view/>
+                        </TabPane>
                     </Tabs>
                 </Content>
             </Layout>
@@ -157,7 +159,7 @@
                         {
                             id: 1, icon: 'ios-paper', name: '内容管理',
                             itemList: [
-                                {id: '1-1', name: '文章管理', url: ''},
+                                {id: '1-1', name: '文章管理', url: '/home/hello'},
                                 {id: '1-2', name: '评论管理', url: ''},
                                 {id: '1-3', name: '举报管理', url: ''}
                             ]
@@ -258,14 +260,20 @@
                 let number = menuItemName.slice(0, menuItemName.indexOf('-'));
                 this.menu.openMenuName = parseInt(number);
                 this.menu.activeMenuName = menuItemName;
-
-                console.log(this.$refs.sideMenu);
             },
             // 获取选中的下拉菜单项
             selectedDropdownMenu(menuItemName) {
-                console.log(menuItemName);
                 this.selectedMenu(menuItemName)
             }
+        },
+        created() {
+            let {routes} = this.$router.options;
+            let routeData = routes.find(r => r.path === this.$route.path);
+            routeData.children = [
+                {path: 'hello', name:'hello', component: () => import('../views/Hello.vue')},
+            ];
+
+            this.$router.$addRoutes([routeData])
         },
 
         mounted() {
@@ -295,6 +303,7 @@
     /deep/ .ivu-layout-header .notifications-poptip .ivu-tabs-nav-scroll {
         margin-left: 23px;
     }
+
     /*================================调整通知的tab页的居中：结束===================================*/
 
     /*================================调整标签页的标签样式：开始================================*/

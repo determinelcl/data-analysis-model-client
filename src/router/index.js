@@ -19,4 +19,11 @@ const router = new VueRouter({
     routes
 });
 
+
+// 自定义动态添加路由的方法，解决了路由重复创建的问题
+router.$addRoutes = (route) => {
+    router.matcher = new VueRouter().matcher;
+    router.addRoutes(route)
+};
+
 export default router
