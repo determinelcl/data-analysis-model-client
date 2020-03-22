@@ -51,8 +51,8 @@
                             <Col class="col-flex col-space">
                                 <Breadcrumb>
                                     <BreadcrumbItem>主页</BreadcrumbItem>
-                                    <BreadcrumbItem>数据分析组件</BreadcrumbItem>
-                                    <BreadcrumbItem>状态管理</BreadcrumbItem>
+                                    <BreadcrumbItem>{{ level2MenuName }}</BreadcrumbItem>
+                                    <BreadcrumbItem>{{ level3MenuName }}</BreadcrumbItem>
                                 </Breadcrumb>
                             </Col>
                         </Col>
@@ -180,7 +180,9 @@
                 'tab', 'menu'
             ]),
             ...mapGetters({
-                findMenuItemByItemId: 'findMenuItemByItemId'
+                findMenuItemByItemId: 'findMenuItemByItemId',
+                level2MenuName: 'level2MenuName',
+                level3MenuName: 'level3MenuName'
             }),
             ...mapMutations([
                 CHANGE_OPENED_MENU, CHANGE_ACTIVE_MENU,

@@ -60,6 +60,29 @@ export default new Vuex.Store({
                 })
             });
             return menuItem;
+        },
+        // 用于动态更新面包屑导航文本
+        level2MenuName: state => {
+            let menuName = '';
+
+            state.menu.menuList.forEach(menu => {
+                if (menu.id !== state.menu.openMenuName) return;
+                menuName = menu.name;
+            });
+
+            return menuName;
+        },
+        // 用于动态更新面包屑导航文本
+        level3MenuName: state => {
+            let menuItem = null;
+            state.menu.menuList.forEach(menu => {
+                menu.itemList.forEach(item => {
+                    if (item.id !== state.menu.activeMenuName) return;
+                    menuItem = item;
+                })
+            });
+
+            return menuItem.name;
         }
     },
     mutations: {
