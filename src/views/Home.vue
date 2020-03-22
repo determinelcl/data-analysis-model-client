@@ -124,7 +124,9 @@
                     <Tabs type="card" @on-tab-remove="handleTabRemove" :animated="false"
                           v-model="tab.activeTab" @on-click="selectedTab">
                         <TabPane v-for="tab in tab.openedTabList" :key="tab.name"
-                                 :label="tab.label" :name="tab.name" closable/>
+                                 :label="tab.label" :name="tab.name" closable>
+                            <router-view :name="tab.component"></router-view>
+                        </TabPane>
                     </Tabs>
                 </Content>
             </Layout>
@@ -137,7 +139,7 @@
     import Internationalization from "../components/Internationalization";
     import Logo from "../components/Logo";
     import screenfull from "screenfull"
-    import {mapMutations, mapState} from "vuex";
+    import {mapGetters, mapMutations, mapState} from "vuex";
     import '../store/mutations.type';
     import {
         CHANGE_ACTIVE_MENU,
@@ -177,6 +179,9 @@
             ...mapState([
                 'tab', 'menu'
             ]),
+            ...mapGetters({
+                findMenuItemByItemId: 'findMenuItemByItemId'
+            }),
             ...mapMutations([
                 CHANGE_OPENED_MENU, CHANGE_ACTIVE_MENU,
                 CHANGE_TAGS_LIST, CHANGE_ACTIVE_TAG, REMOVE_TAB
@@ -200,7 +205,9 @@
             // 点击打开的标签页，储存当前路由状态ACTIVE_TAG，跳转到当前页
             selectedTab(tabName) {
                 this.$store.commit(CHANGE_ACTIVE_TAG, tabName);
-                console.log(tabName)
+
+                let menuItem = this.findMenuItemByItemId(tabName);
+                this.$router.push({path: menuItem.url});
             },
             // 关闭标签页，删除store里面状态，然后通过路由跳转到当前页面
             handleTabRemove(tabName) {
@@ -264,6 +271,9 @@
 
                 this.$store.commit(CHANGE_TAGS_LIST);
                 this.$store.commit(CHANGE_ACTIVE_TAG, menuItemName);
+
+                let menuItem = this.findMenuItemByItemId(menuItemName);
+                this.$router.push({path: menuItem.url})
             },
             // 获取选中的下拉菜单项
             selectedDropdownMenu(menuItemName) {
@@ -274,9 +284,9 @@
             let {routes} = this.$router.options;
             let routeData = routes.find(r => r.path === this.$route.path);
             routeData.children = [
-                {path: 'hello', name: 'hello', component: () => import('../views/Hello.vue')},
-                {path: 'hello2', name: 'hello2', component: () => import('../views/Hello2.vue')},
-                {path: 'hello3', name: 'hello3', component: () => import('../views/Hello3.vue')}
+                {path: 'hello', name: 'hello', components: {'hello': () => import('../views/Hello.vue')}},
+                {path: 'hello2', name: 'hello2', components: {'hello2': () => import('../views/Hello2.vue')}},
+                {path: 'hello3', name: 'hello3', components: {'hello3': () => import('../views/Hello3.vue')}}
             ];
 
             this.$router.$addRoutes([routeData])

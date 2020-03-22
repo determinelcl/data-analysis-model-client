@@ -15,7 +15,7 @@ export default new Vuex.Store({
         tab: {
             activeTab: '1-2',
             openedTabList: [
-                {label: '评论管理', name: '1-2'}
+                {label: '评论管理', name: '1-2', component: 'hello2'}
             ]
         },
         menu: {
@@ -25,29 +25,41 @@ export default new Vuex.Store({
                 {
                     id: 1, icon: 'ios-paper', name: '内容管理',
                     itemList: [
-                        {id: '1-1', name: '文章管理', url: '/home/hello'},
-                        {id: '1-2', name: '评论管理', url: '/home/hello2'},
-                        {id: '1-3', name: '举报管理', url: '/home/hello3'}
+                        {id: '1-1', name: '文章管理', url: '/home/hello', component: 'hello'},
+                        {id: '1-2', name: '评论管理', url: '/home/hello2', component: 'hello2'},
+                        {id: '1-3', name: '举报管理', url: '/home/hello3', component: 'hello3'}
                     ]
                 },
                 {
                     id: 2, icon: 'ios-people', name: '用户管理',
                     itemList: [
-                        {id: '2-1', name: '新增用户', url: ''},
-                        {id: '2-2', name: '活跃用户', url: ''}
+                        {id: '2-1', name: '新增用户', url: '/home/hello', component: 'hello'},
+                        {id: '2-2', name: '活跃用户', url: '/home/hello', component: 'hello'}
                     ]
                 },
                 {
                     id: 3, icon: 'ios-stats', name: '统计分析',
                     itemList: [
-                        {id: '3-1', name: '新增和启动', url: ''},
-                        {id: '3-2', name: '活跃分析', url: ''},
-                        {id: '3-3', name: '时段分析', url: ''},
-                        {id: '3-4', name: '用户留存', url: ''},
-                        {id: '3-5', name: '流失用户', url: ''}
+                        {id: '3-1', name: '新增和启动', url: '/home/hello', component: 'hello'},
+                        {id: '3-2', name: '活跃分析', url: '/home/hello', component: 'hello'},
+                        {id: '3-3', name: '时段分析', url: '/home/hello', component: 'hello'},
+                        {id: '3-4', name: '用户留存', url: '/home/hello', component: 'hello'},
+                        {id: '3-5', name: '流失用户', url: '/home/hello', component: 'hello'}
                     ]
                 },
             ]
+        }
+    },
+    getters: {
+        findMenuItemByItemId: state => (itemId) => {
+            let menuItem = null;
+            state.menu.menuList.forEach(menu => {
+                menu.itemList.forEach(item => {
+                    if (item.id !== itemId) return;
+                    menuItem = item;
+                })
+            });
+            return menuItem;
         }
     },
     mutations: {
@@ -72,16 +84,19 @@ export default new Vuex.Store({
             // 如果选中的菜单中不存在打开的tab列表中，则新建一个tab标签对象
             // 其中label等于active的name，
             let activeTabItemLabel = '';
+            let activeTabRouterName = '';
             state.menu.menuList.filter(item => item.id === state.menu.openMenuName).forEach(menu => {
                 menu.itemList.forEach(item => {
                     if (item.id !== state.menu.activeMenuName) return;
                     activeTabItemLabel = item.name;
+                    activeTabRouterName = item.component;
                 })
             });
 
             let tabItem = {
                 label: activeTabItemLabel,
-                name: state.menu.activeMenuName
+                name: state.menu.activeMenuName,
+                component: activeTabRouterName
             };
 
             state.tab.openedTabList.push(tabItem);

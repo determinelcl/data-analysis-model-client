@@ -19,6 +19,11 @@ const router = new VueRouter({
     routes
 });
 
+// 解决跳转相同路由的问题：Unhandled Promise Rejection: NavigationDuplicated: Navigating to current location (url)
+const originalPush = VueRouter.prototype.push;
+VueRouter.prototype.push = function push(location) {
+    return originalPush.call(this, location).catch(err => err)
+};
 
 // 自定义动态添加路由的方法，解决了路由重复创建的问题
 router.$addRoutes = (route) => {
