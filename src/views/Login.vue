@@ -75,6 +75,8 @@
     import Logo from "../components/Logo";
     import Internationalization from "../components/Internationalization";
     import qs from 'qs';
+    import {ADD_ACCOUNT} from "../store/mutations.type";
+    import {mapMutations} from "vuex";
 
     export default {
         name: 'Login',
@@ -97,26 +99,30 @@
                 }
             }
         },
+        computed: {
+            ...mapMutations([
+                ADD_ACCOUNT
+            ])
+        },
         methods: {
             handleSubmit(name) {
                 this.$refs[name].validate((valid) => {
                     if (valid) {
-                        let json = this.form;
-                        json['grant_type'] = 'password';
-                        json['client_id'] = 'client';
-                        json['client_secret'] = 'secret';
-
-                        console.log(qs.stringify(this.form));
+                        let formData = this.form;
+                        formData['grant_type'] = 'password';
+                        formData['client_id'] = 'client';
+                        formData['client_secret'] = 'secret';
 
                         this.axios.post("/oauth2-server/oauth/token", qs.stringify(this.form), {
                             headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-                        }).then(response => {
-                            console.log(response);
+                        }).then(({data}) => {
+                            console.log(data);
+                            this.$store.commit(ADD_ACCOUNT, {tokenInfo: data, rememberMe: formData.auto});
+                            this.$Message.success('登录成功');
+                            this.$router.push({name: 'home'});
                         }).catch(error => {
-                            console.log(error);
+                            this.$Message.error(error);
                         });
-                        // this.$Message.success();
-                        // this.$router.push({name: 'home'});
                     } else {
                         this.$Message.error('Fail!');
                     }

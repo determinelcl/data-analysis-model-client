@@ -5,13 +5,20 @@ import {
     CHANGE_ACTIVE_TAG,
     CHANGE_OPENED_MENU,
     CHANGE_TAGS_LIST,
-    REMOVE_TAB
+    REMOVE_TAB,
+    ADD_ACCOUNT,
+    REMOVE_ACCOUNT
 } from "./mutations.type";
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {
+        user: {
+            username: '',
+            userIcon: '',
+            token: ''
+        },
         tab: {
             activeTab: '1-2',
             openedTabList: [
@@ -153,6 +160,20 @@ export default new Vuex.Store({
         },
         [CHANGE_OPENED_MENU](state, openedMenu) {
             state.menu.openMenuName = openedMenu;
+        },
+        [ADD_ACCOUNT](state, tokenInfo, rememberMe) { // 第一个参数为 state 用于变更状态 登录
+            if (!rememberMe)
+                sessionStorage.setItem("token", tokenInfo);
+            else
+                localStorage.setItem("token", tokenInfo);
+
+            state.user.token = tokenInfo;
+        },
+        [REMOVE_ACCOUNT](state) { // 退出登录
+            sessionStorage.removeItem("token");
+            localStorage.removeItem('token');
+
+            state.user.token = '';
         }
     },
     actions: {},

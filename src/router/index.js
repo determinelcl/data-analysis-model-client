@@ -10,7 +10,7 @@ const routes = [
     {path: '/', redirect: '/login'},
     {path: '/login', name: 'login', component: Login},
     {path: '/register', name: 'register', component: Register},
-    {path: '/home', name: 'home', component: Home}
+    {path: '/home', name: 'home', component: Home, meta: {requireAuth: true}}
     // {path: '/about', name: 'About', component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')}
 
 ];
