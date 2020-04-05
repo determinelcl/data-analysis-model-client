@@ -12,8 +12,8 @@
                                :content="'数据分析组件为大数据分析系统提供优质解决方案'"></CenterBox>
                     <CenterBox :height="'25px'"></CenterBox>
                     <Form ref="formInline" :model="form" :rules="loginRule" :label-width="0">
-                        <FormItem prop="user">
-                            <Input type="text" v-model="form.user" placeholder="请输入用户名" size="large">
+                        <FormItem prop="username">
+                            <Input type="text" v-model="form.username" placeholder="请输入用户名" size="large">
                                 <Icon type="ios-person-outline" slot="prefix" size="large"/>
                             </Input>
                         </FormItem>
@@ -74,6 +74,7 @@
     import CenterBox from "../components/CenterBox";
     import Logo from "../components/Logo";
     import Internationalization from "../components/Internationalization";
+    import qs from 'qs';
 
     export default {
         name: 'Login',
@@ -81,12 +82,12 @@
         data() {
             return {
                 form: {
-                    user: '',
+                    username: '',
                     password: '',
                     auto: false
                 },
                 loginRule: {
-                    user: [
+                    username: [
                         {required: true, message: '请输入用户名', trigger: 'blur'}
                     ],
                     password: [
@@ -100,8 +101,22 @@
             handleSubmit(name) {
                 this.$refs[name].validate((valid) => {
                     if (valid) {
-                        this.$Message.success('Success!');
-                        this.$router.push({name: 'home'});
+                        let json = this.form;
+                        json['grant_type'] = 'password';
+                        json['client_id'] = 'client';
+                        json['client_secret'] = 'secret';
+
+                        console.log(qs.stringify(this.form));
+
+                        this.axios.post("/oauth2-server/oauth/token", qs.stringify(this.form), {
+                            headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+                        }).then(response => {
+                            console.log(response);
+                        }).catch(error => {
+                            console.log(error);
+                        });
+                        // this.$Message.success();
+                        // this.$router.push({name: 'home'});
                     } else {
                         this.$Message.error('Fail!');
                     }
