@@ -75,7 +75,7 @@
     import Logo from "../components/Logo";
     import Internationalization from "../components/Internationalization";
     import qs from 'qs';
-    import {ADD_ACCOUNT} from "../store/mutations.type";
+    import {ADD_ACCOUNT, UPDATE_MENU_LIST} from "../store/mutations.type";
     import {mapMutations} from "vuex";
 
     export default {
@@ -101,7 +101,7 @@
         },
         computed: {
             ...mapMutations([
-                ADD_ACCOUNT
+                ADD_ACCOUNT, UPDATE_MENU_LIST
             ])
         },
         methods: {
@@ -116,15 +116,20 @@
                         this.axios.post("/oauth2-server/oauth/token", qs.stringify(this.form), {
                             headers: {'Content-Type': 'application/x-www-form-urlencoded'}
                         }).then(({data}) => {
-                            console.log(data);
-                            this.$store.commit(ADD_ACCOUNT, {tokenInfo: data, rememberMe: formData.auto});
+                            this.$store.commit(ADD_ACCOUNT, JSON.stringify(data));
                             this.$Message.success('登录成功');
+                            // 登录成功获取菜单数据
+                            return this.axios.get(`/authority-server/list/user/${formData.username}`);
+                        }).then(({data}) => {
+                            // 更新菜单状态
+                            this.$store.commit(UPDATE_MENU_LIST, data);
                             this.$router.push({name: 'home'});
                         }).catch(error => {
-                            this.$Message.error(error);
+                            console.log("登录错误信息：" + error);
+                            this.$Message.error("用户名或者密码错误");
                         });
                     } else {
-                        this.$Message.error('Fail!');
+                        this.$Message.error('用户名和密码不能为空！');
                     }
                 })
             }

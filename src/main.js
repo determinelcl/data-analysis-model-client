@@ -5,35 +5,63 @@ import store from './store'
 import './plugins/iview.js'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
+import qs from 'qs'
+import {TOKEN_INFORMATION} from "./constant/system";
 
 Vue.config.productionTip = false;
 
 axios.defaults.baseURL = "http://localhost:9000/";
 console.log(axios.defaults.baseURL);
+
+axios.interceptors.request.use(config => {
+    // 获取token
+    let tokenInformation = localStorage.getItem(TOKEN_INFORMATION);
+    if (tokenInformation && JSON.parse(tokenInformation).access_token)
+        config.headers.Authorization = `Bearer ${JSON.parse(tokenInformation).access_token}`;
+
+    return config;
+}, error => {
+    return Promise.reject(error);
+});
+
 Vue.use(VueAxios, axios);
 
 router.beforeEach((to, from, next) => {
-    // this.LoadingBar.start(); //loading 效果
 
-    store.state.user.token = sessionStorage.getItem('token');//获取本地存储的token
+    let token = localStorage.getItem(TOKEN_INFORMATION);//获取本地存储的token
 
-    if (to.meta.requireAuth) {  // 判断该路由是否需要登录权限
-        if (store.state.user.token != null && store.state.user.token !== '') {  // 通过vuex state获取当前的token是否存
-            next();
-        } else {
-            next({
-                path: '/login',
-                query: {redirect: to.fullPath}  // 将跳转的路由path作为参数，登录成功后跳转到该路由
-            })
-        }
-    } else {
+    // 如果不需要登录，则直接放行
+    if (!to.meta.requireAuth) {
         next();
+        return;
     }
+
+    console.log("beforeEach路由守卫验证Token：" + token);
+    // 如果用户未登录，则跳转至登录页面
+    if (!token) {
+        next({path: '/login', query: {redirect: to.fullPath}});
+        return;
+    }
+
+    console.log("==================beforeEach路由守卫验证Token开始==================");
+
+    // 验证Token是否合法
+    let jsonToken = JSON.parse(token);
+    axios.post('/oauth2-server/oauth/check_token', qs.stringify({token: jsonToken.access_token}), {
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+    }).then(({data}) => {
+        if (!data.active) return Promise.reject(data.error);
+        // 如果合法，则进行跳转
+        next();
+    }).catch(error => {
+        // 如果token不合法，则需要进行重新登录
+        console.log("beforeEach：异常 " + error);
+        next({path: '/login', query: {redirect: to.fullPath}})
+    });
 });
 
 router.afterEach(route => {
-    // this.LoadingBar.finish();
-    console.log(route);
+    console.log("afterEach路由守卫的验证：" + route);
 });
 
 new Vue({

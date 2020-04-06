@@ -7,8 +7,10 @@ import {
     CHANGE_TAGS_LIST,
     REMOVE_TAB,
     ADD_ACCOUNT,
-    REMOVE_ACCOUNT
+    REMOVE_ACCOUNT,
+    UPDATE_MENU_LIST
 } from "./mutations.type";
+import {TOKEN_INFORMATION} from "../constant/system";
 
 Vue.use(Vuex);
 
@@ -16,8 +18,7 @@ export default new Vuex.Store({
     state: {
         user: {
             username: '',
-            userIcon: '',
-            token: ''
+            userIcon: ''
         },
         tab: {
             activeTab: '1-2',
@@ -161,19 +162,19 @@ export default new Vuex.Store({
         [CHANGE_OPENED_MENU](state, openedMenu) {
             state.menu.openMenuName = openedMenu;
         },
-        [ADD_ACCOUNT](state, tokenInfo, rememberMe) { // 第一个参数为 state 用于变更状态 登录
-            if (!rememberMe)
-                sessionStorage.setItem("token", tokenInfo);
-            else
-                localStorage.setItem("token", tokenInfo);
+        [ADD_ACCOUNT](state, tokenInfo) { // 第一个参数为 state 用于变更状态 登录
+            localStorage.setItem(TOKEN_INFORMATION, tokenInfo);
 
             state.user.token = tokenInfo;
         },
         [REMOVE_ACCOUNT](state) { // 退出登录
-            sessionStorage.removeItem("token");
-            localStorage.removeItem('token');
-
-            state.user.token = '';
+            console.log('REMOVE_ACCOUNT ' + state);
+            localStorage.removeItem(TOKEN_INFORMATION);
+        },
+        [UPDATE_MENU_LIST](state, {data}) {
+            // todo: 用于更新menu
+            console.log("UPDATE_MENU_LIST " + state.user);
+            console.log(data);
         }
     },
     actions: {},
