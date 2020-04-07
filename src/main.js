@@ -27,7 +27,6 @@ axios.interceptors.request.use(config => {
 Vue.use(VueAxios, axios);
 
 router.beforeEach((to, from, next) => {
-
     let token = localStorage.getItem(TOKEN_INFORMATION);//获取本地存储的token
 
     // 如果不需要登录，则直接放行
@@ -36,14 +35,11 @@ router.beforeEach((to, from, next) => {
         return;
     }
 
-    console.log("beforeEach路由守卫验证Token：" + token);
     // 如果用户未登录，则跳转至登录页面
     if (!token) {
         next({path: '/login', query: {redirect: to.fullPath}});
         return;
     }
-
-    console.log("==================beforeEach路由守卫验证Token开始==================");
 
     // 验证Token是否合法
     let jsonToken = JSON.parse(token);
@@ -60,8 +56,8 @@ router.beforeEach((to, from, next) => {
     });
 });
 
-router.afterEach(route => {
-    console.log("afterEach路由守卫的验证：" + route);
+router.afterEach((to, from) => {
+    console.log(`afterEach路由守卫的验证：${to.path}->${from.path}`);
 });
 
 new Vue({

@@ -125,9 +125,11 @@
                           v-model="tab.activeTab" @on-click="selectedTab">
                         <TabPane v-for="tab in tab.openedTabList" :key="tab.name"
                                  :label="tab.label" :name="tab.name" closable>
-                            <router-view :name="tab.component"></router-view>
                         </TabPane>
                     </Tabs>
+                    <div>
+                        <router-view></router-view>
+                    </div>
                 </Content>
             </Layout>
         </Layout>
@@ -146,7 +148,9 @@
         CHANGE_ACTIVE_TAG,
         CHANGE_OPENED_MENU,
         CHANGE_TAGS_LIST,
-        REMOVE_TAB
+        REMOVE_TAB,
+        PERSIST_STATE,
+        LOAD_STATE
     } from "../store/mutations.type";
 
     export default {
@@ -186,7 +190,8 @@
             }),
             ...mapMutations([
                 CHANGE_OPENED_MENU, CHANGE_ACTIVE_MENU,
-                CHANGE_TAGS_LIST, CHANGE_ACTIVE_TAG, REMOVE_TAB
+                CHANGE_TAGS_LIST, CHANGE_ACTIVE_TAG, REMOVE_TAB,
+                PERSIST_STATE, LOAD_STATE
             ]),
             // 用于监听展开菜单的open属性
             watchActiveMenuNameChanged() {
@@ -197,7 +202,11 @@
             // 展开菜单的open属性值变化时，同步更新opened属性值
             watchActiveMenuNameChanged: {
                 handler(newVal, oldVal) {
-                    this.updateChangedMenu();
+                    try {
+                        this.updateChangedMenu();
+                    } catch (e) {
+                        console.log(e)
+                    }
                     console.log(oldVal + ' ' + newVal);
                 },
                 deep: true
@@ -283,17 +292,41 @@
             }
         },
         created() {
+            this.$store.commit(LOAD_STATE);
+
+            // issue：显示找到当前路由，如果是直接添加路由的话，vue-router不会进行覆盖，而是会重复添加路由
             let {routes} = this.$router.options;
             let routeData = routes.find(r => r.path === this.$route.path);
-            routeData.children = [
-                {path: 'hello', name: 'hello', components: {'hello': () => import('../views/Hello.vue')}},
-                {path: 'hello2', name: 'hello2', components: {'hello2': () => import('../views/Hello2.vue')}},
-                {path: 'hello3', name: 'hello3', components: {'hello3': () => import('../views/Hello3.vue')}}
-            ];
 
-            this.$router.$addRoutes([routeData])
+            // 获取所有的二级菜单，因为二级菜单才需要路由的跳转
+            let menuItemList = [];
+            this.$store.state.menu.menuList.forEach(item => menuItemList.push(...item.itemList));
+
+            // 动态生成所有子路有
+            let routerChildren = [];
+            menuItemList.filter(item => item.url && item.component).forEach(item => {
+                // 判断路由组件是否存在，如果存在直接跳过
+                let flag = false;
+                routerChildren.forEach(temp => {
+                    if (temp.path === item.component)
+                        flag = true;
+                });
+                if (flag) return;
+
+                // 添加新的路由
+                let temp = {
+                    path: item.component,
+                    name: item.component,
+                    // issue：webpack不支持import中是变量，所以这个样子写才可以
+                    component: () => import(`@/views/${item.component}.vue`),
+                    meta: {requireAuth: true}
+                };
+                routerChildren.push(temp);
+            });
+            routeData.children = routerChildren;
+
+            this.$router.$addRoutes([routeData]);
         },
-
         mounted() {
             // 处理全屏切换的图标的切换
             let _this = this;
@@ -303,7 +336,10 @@
                 resizeTimer = setTimeout(function () {
                     _this.isScreenFull = !_this.isScreenFull;
                 }, 100);
-            }
+            };
+            window.onbeforeunload = () => {
+                _this.$store.commit(PERSIST_STATE);
+            };
         }
     }
 </script>

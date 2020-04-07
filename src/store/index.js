@@ -8,9 +8,11 @@ import {
     REMOVE_TAB,
     ADD_ACCOUNT,
     REMOVE_ACCOUNT,
-    UPDATE_MENU_LIST
+    UPDATE_MENU_LIST,
+    PERSIST_STATE,
+    LOAD_STATE
 } from "./mutations.type";
-import {TOKEN_INFORMATION} from "../constant/system";
+import {STATE_INFORMATION, TOKEN_INFORMATION} from "../constant/system";
 
 Vue.use(Vuex);
 
@@ -21,41 +23,13 @@ export default new Vuex.Store({
             userIcon: ''
         },
         tab: {
-            activeTab: '1-2',
-            openedTabList: [
-                {label: '评论管理', name: '1-2', component: 'hello2'}
-            ]
+            activeTab: '',
+            openedTabList: []
         },
         menu: {
             openMenuName: 1,
-            activeMenuName: '1-2',
-            menuList: [
-                {
-                    id: 1, icon: 'ios-paper', name: '内容管理',
-                    itemList: [
-                        {id: '1-1', name: '文章管理', url: '/home/hello', component: 'hello'},
-                        {id: '1-2', name: '评论管理', url: '/home/hello2', component: 'hello2'},
-                        {id: '1-3', name: '举报管理', url: '/home/hello3', component: 'hello3'}
-                    ]
-                },
-                {
-                    id: 2, icon: 'ios-people', name: '用户管理',
-                    itemList: [
-                        {id: '2-1', name: '新增用户', url: '/home/hello', component: 'hello'},
-                        {id: '2-2', name: '活跃用户', url: '/home/hello', component: 'hello'}
-                    ]
-                },
-                {
-                    id: 3, icon: 'ios-stats', name: '统计分析',
-                    itemList: [
-                        {id: '3-1', name: '新增和启动', url: '/home/hello', component: 'hello'},
-                        {id: '3-2', name: '活跃分析', url: '/home/hello', component: 'hello'},
-                        {id: '3-3', name: '时段分析', url: '/home/hello', component: 'hello'},
-                        {id: '3-4', name: '用户留存', url: '/home/hello', component: 'hello'},
-                        {id: '3-5', name: '流失用户', url: '/home/hello', component: 'hello'}
-                    ]
-                },
-            ]
+            activeMenuName: '',
+            menuList: []
         }
     },
     getters: {
@@ -162,19 +136,52 @@ export default new Vuex.Store({
         [CHANGE_OPENED_MENU](state, openedMenu) {
             state.menu.openMenuName = openedMenu;
         },
-        [ADD_ACCOUNT](state, tokenInfo) { // 第一个参数为 state 用于变更状态 登录
-            localStorage.setItem(TOKEN_INFORMATION, tokenInfo);
+        [ADD_ACCOUNT](state, data) { // 第一个参数为 state 用于变更状态 登录
+            localStorage.setItem(TOKEN_INFORMATION, data.tokenInfo);
 
-            state.user.token = tokenInfo;
+            state.user.username = data.username;
         },
         [REMOVE_ACCOUNT](state) { // 退出登录
             console.log('REMOVE_ACCOUNT ' + state);
             localStorage.removeItem(TOKEN_INFORMATION);
         },
-        [UPDATE_MENU_LIST](state, {data}) {
-            // todo: 用于更新menu
-            console.log("UPDATE_MENU_LIST " + state.user);
-            console.log(data);
+        [UPDATE_MENU_LIST](state, data) {
+            // 1、递归data生成菜单树
+            let parentMenuList = data.data.filter(item => item.parentId === 0 && item.showType === 0);
+            parentMenuList.forEach(item => {
+                item['itemList'] = [];
+                data.data.filter(temp => temp.parentId === item.id).forEach(temp => {
+                    let tempItem = temp;
+                    // 将itemList的id转换成parentId-childId的形式
+                    tempItem.id = `${item.id}-${temp.id}`;
+                    tempItem.url = temp.url;
+                    item.itemList.push(tempItem);
+                });
+            });
+            console.log(parentMenuList);
+
+            // 更新菜单状态
+            state.menu.menuList = parentMenuList;
+            let activeMenuItem = parentMenuList[0].itemList[0];
+            state.menu.activeMenuName = activeMenuItem.id;
+            state.menu.openMenuName = parentMenuList[0].id;
+
+            // 更新打开的Tab页签的状态
+            state.tab.activeTab = activeMenuItem.id;
+            state.tab.openedTabList = [];
+            state.tab.openedTabList.push({
+                label: activeMenuItem.name, name: activeMenuItem.id, component: activeMenuItem.component
+            });
+        },
+        [PERSIST_STATE](state) {
+            localStorage.setItem(STATE_INFORMATION, JSON.stringify(state));
+        },
+        [LOAD_STATE](state) {
+            let item = localStorage.getItem(STATE_INFORMATION);
+            if (!item && state.user.username) return;
+
+            Object.assign(state, JSON.parse(item));
+            localStorage.removeItem(STATE_INFORMATION);
         }
     },
     actions: {},

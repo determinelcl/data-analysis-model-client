@@ -104,6 +104,16 @@
                 ADD_ACCOUNT, UPDATE_MENU_LIST
             ])
         },
+        created() {
+            console.log("===========================================================================");
+            console.log("==============================登录页面创建了=================================");
+            console.log("===========================================================================");
+        },
+        mounted() {
+            console.log("===========================================================================");
+            console.log("==============================登录页面开始了=================================");
+            console.log("===========================================================================");
+        },
         methods: {
             handleSubmit(name) {
                 this.$refs[name].validate((valid) => {
@@ -116,13 +126,18 @@
                         this.axios.post("/oauth2-server/oauth/token", qs.stringify(this.form), {
                             headers: {'Content-Type': 'application/x-www-form-urlencoded'}
                         }).then(({data}) => {
-                            this.$store.commit(ADD_ACCOUNT, JSON.stringify(data));
-                            this.$Message.success('登录成功');
+                            this.$store.commit(ADD_ACCOUNT, {
+                                tokenInfo: JSON.stringify(data), username: formData.username
+                            });
                             // 登录成功获取菜单数据
                             return this.axios.get(`/authority-server/list/user/${formData.username}`);
                         }).then(({data}) => {
+                            this.$Message.success('登录成功');
                             // 更新菜单状态
-                            this.$store.commit(UPDATE_MENU_LIST, data);
+                            this.$store.commit(UPDATE_MENU_LIST, {
+                                router: this.$router,
+                                data: data.data
+                            });
                             this.$router.push({name: 'home'});
                         }).catch(error => {
                             console.log("登录错误信息：" + error);
