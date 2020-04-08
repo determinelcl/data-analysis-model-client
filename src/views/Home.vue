@@ -1,6 +1,6 @@
 <template>
-    <div class="layout">
-        <Layout :style="{minHeight: '100vh'}">
+    <div class="layout" :style="{height: '100%'}">
+        <Layout :style="{height: '100%'}">
             <Sider ref="side" hide-trigger collapsible :collapsed-width="78" v-model="isCollapsed" width="256px"
                    :style="{background: '#191a23', boxShadow: '2px 0 6px rgba(0,21,41,.35)', zIndex: 3}">
                 <Logo height="65px" font-size="20px" logo-space="3px" logo-size="50px" font-color="#ffffff"
@@ -120,16 +120,16 @@
                         </Col>
                     </Row>
                 </Header>
-                <Content :style="{padding: '16px 16px 16px'}" class="tabs-style">
+                <Content :style="{padding: '16px 16px 16px', height: 'calc(100% - 64px)'}" class="tabs-style">
                     <Tabs type="card" @on-tab-remove="handleTabRemove" :animated="false"
                           v-model="tab.activeTab" @on-click="selectedTab">
                         <TabPane v-for="tab in tab.openedTabList" :key="tab.name"
                                  :label="tab.label" :name="tab.name" closable>
                         </TabPane>
                     </Tabs>
-                    <div>
+                    <Scroll>
                         <router-view></router-view>
-                    </div>
+                    </Scroll>
                 </Content>
             </Layout>
         </Layout>
@@ -318,7 +318,7 @@
                     path: item.component,
                     name: item.component,
                     // issue：webpack不支持import中是变量，所以这个样子写才可以
-                    component: () => import(`@/views/${item.component}.vue`),
+                    component: () => import(`@/views/${item.componentUri}.vue`),
                     meta: {requireAuth: true}
                 };
                 routerChildren.push(temp);
@@ -345,6 +345,21 @@
 </script>
 
 <style lang="less" scoped>
+
+    /*================================调整Scroll的高度：开始===================================*/
+    /deep/ .ivu-scroll-loader {
+        height: 0;
+    }
+
+    /deep/ .ivu-scroll-container {
+        height: 100% !important;
+    }
+
+    /deep/ .ivu-scroll-wrapper {
+        height: calc(100% - 44px);
+    }
+    /*================================调整Scroll的高度：结束===================================*/
+
     /*================================调整通知的tab页的居中：开始===================================*/
     /deep/ .ivu-layout-header .notifications-poptip div.ivu-poptip-arrow {
         display: none;
@@ -390,7 +405,7 @@
 
     /*================================调整标签页的标签样式：结束================================*/
 
-    /deep/ .ivu-input {
+    /deep/ .ivu-layout-header .ivu-input {
         border: none !important;
     }
 
