@@ -22,7 +22,7 @@
                                 <Icon type="ios-lock-outline" slot="prefix" size="large"/>
                             </Input>
                         </FormItem>
-                        <FormItem prop="automaticLogin">
+                        <FormItem prop="auto">
                             <Row type="flex" justify="space-between" class="code-row-bg">
                                 <Checkbox v-model="form.auto" size="large">自动登录</Checkbox>
                                 <router-link to="/">忘记密码</router-link>
@@ -77,6 +77,7 @@
     import qs from 'qs';
     import {ADD_ACCOUNT, UPDATE_MENU_LIST} from "../store/mutations.type";
     import {mapMutations} from "vuex";
+    import {errorMessage} from "../util/message.util";
 
     export default {
         name: 'Login',
@@ -123,6 +124,7 @@
                         formData['client_id'] = 'client';
                         formData['client_secret'] = 'secret';
 
+                        this.$Loading.start();
                         this.axios.post("/oauth2-server/oauth/token", qs.stringify(this.form), {
                             headers: {'Content-Type': 'application/x-www-form-urlencoded'}
                         }).then(({data}) => {
@@ -132,6 +134,7 @@
                             // 登录成功获取菜单数据
                             return this.axios.get(`/authority-server/list/user/${formData.username}`);
                         }).then(({data}) => {
+                            this.$Loading.finish();
                             this.$Message.success('登录成功');
                             // 更新菜单状态
                             this.$store.commit(UPDATE_MENU_LIST, {
@@ -140,11 +143,12 @@
                             });
                             this.$router.push({name: 'home'});
                         }).catch(error => {
+                            this.$Loading.error();
                             console.log("登录错误信息：" + error);
-                            this.$Message.error("用户名或者密码错误");
+                            errorMessage(error, this);
                         });
                     } else {
-                        this.$Message.error('用户名和密码不能为空！');
+                        this.$Message.error(`${valid}`);
                     }
                 })
             }
