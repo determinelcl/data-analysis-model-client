@@ -1,22 +1,10 @@
 <template>
     <div>
-        <div :style="{height: '100px', backgroundColor: '#ffffff', padding: 0}">
-            <div :style="{padding: '16px 32px 1px 32px'}">
-                <div :style="{fontSize: '22px', height: '30px', color:'#17233D', fontWeight: 500, margin: '0 0 16px 0'}">
-                    用户管理
-                </div>
-                <div>用户管理：添加、删除、修改、查询、禁用用户</div>
-            </div>
-        </div>
-        <div :style="{margin: '16px 24px', backgroundColor: '#ffffff', padding:'16px', overflow: 'auto'}">
-            <Spin fix v-if="spinShow">
-                <div class="loader">
-                    <svg class="circular" viewBox="25 25 50 50">
-                        <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="5"
-                                stroke-miterlimit="10"></circle>
-                    </svg>
-                </div>
-            </Spin>
+        <ComponentTitle name="用户管理" description="用户管理：添加、删除、修改、查询、禁用用户"></ComponentTitle>
+
+        <div :style="this.$store.state.style.contentStyle">
+
+            <Spin fix v-if="spinShow"><LoadingIcon></LoadingIcon></Spin>
 
             <Form ref="formInline" :model="searchForm" :rules="searchRule">
                 <Row type="flex" justify="space-between" :style="{padding: '0 20px'}">
@@ -75,7 +63,7 @@
                     <Drawer :title="updateUserText" v-model="editUserOpenState" width="720"
                             :mask-closable="false" :styles="styles">
                         <EditUser :form-data="editUserForm"
-                                  :edit-type="editType"  @completeTask="editUserCompleteTask"></EditUser>
+                                  :edit-type="editType" @completeTask="editUserCompleteTask"></EditUser>
                     </Drawer>
                 </Col>
                 <Col span="3">
@@ -115,8 +103,10 @@
             </Row>
             <Table ref="userTableRef" :data="tableData" :columns="tableColumns" stripe no-data-text="用户数据为空">
                 <template slot-scope="{ row, index }" slot="action">
-                    <Button type="primary" size="small" style="margin-right: 5px" @click="showUserDetail(index)">详情</Button>
-                    <Drawer :closable="false" v-model="userDetail" width="640" :styles="{overflow: 'auto', position: 'static'}">
+                    <Button type="primary" size="small" style="margin-right: 5px" @click="showUserDetail(index)">详情
+                    </Button>
+                    <Drawer :closable="false" v-model="userDetail" width="640"
+                            :styles="{overflow: 'auto', position: 'static'}">
                         <UserDetail :user-info="userInfo"></UserDetail>
                     </Drawer>
                     <Button type="warning" size="small" style="margin-right: 5px" @click="updateUser(index)">更新</Button>
@@ -154,10 +144,12 @@
     import UserDetail from "./user/UserDetail";
     import {errorMessage} from "../../util/message.util";
     import {deepClone} from "../../util/object.util";
+    import ComponentTitle from "../../components/ComponentTitle";
+    import LoadingIcon from "../../components/LoadingIcon";
 
     export default {
         name: "User",
-        components: {UserDetail, EditUser},
+        components: {LoadingIcon, ComponentTitle, UserDetail, EditUser},
         data() {
             return {
                 spinShow: false,

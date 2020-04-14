@@ -59,7 +59,7 @@
                 </Col>
                 <Col span="3"></Col>
                 <Col span="22">
-                    <Tag v-for="role in roleList" size="large" color="orange">{{role.name}}</Tag>
+                    <Tag v-for="role in roleList" :key="role.id" size="large" color="orange">{{role.name}}</Tag>
                 </Col>
             </Row>
             <Row :style="{height: '30px'}"></Row>
@@ -69,7 +69,7 @@
                 </Col>
                 <Col span="3"></Col>
                 <Col span="22">
-                    <Tag v-for="item in authorityList" size="large" color="green">{{item}}</Tag>
+                    <Tag v-for="item in authorityList" :key="item" size="large" color="green">{{item}}</Tag>
                 </Col>
             </Row>
         </div>

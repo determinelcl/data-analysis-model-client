@@ -18,6 +18,15 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {
+        style: {
+            contentStyle: {
+                margin: '16px 24px',
+                backgroundColor: '#ffffff',
+                padding: '16px',
+                overflow: 'auto',
+                position: 'relative'
+            }
+        },
         user: {
             username: '',
             userIcon: ''
