@@ -142,7 +142,7 @@
 <script>
     import EditUser from "./user/EditUser";
     import UserDetail from "./user/UserDetail";
-    import {errorMessage} from "../../util/message.util";
+    import {errorMessage, renderPopTip} from "../../util/message.util";
     import {deepClone} from "../../util/object.util";
     import ComponentTitle from "../../components/ComponentTitle";
     import LoadingIcon from "../../components/LoadingIcon";
@@ -274,7 +274,7 @@
                                 roleName += ', ' + role.name
                             });
 
-                            return this.renderPopTip(h, roleName);
+                            return renderPopTip(h, roleName);
                         }
                     },
                     {
@@ -298,7 +298,7 @@
                             });
 
 
-                            return this.renderPopTip(h, authority);
+                            return renderPopTip(h, authority);
                         }
                     },
                     {
@@ -318,7 +318,7 @@
 
                             setAreaName(row.area);
 
-                            return this.renderPopTip(h, areaName);
+                            return renderPopTip(h, areaName);
                         }
                     },
                     {title: '创建日期', key: 'created', width: 180, resizable: true},
@@ -327,7 +327,7 @@
                         title: '描述信息', key: 'description', width: 180, resizable: true,
                         render: (h, params) => {
                             let row = params.row;
-                            return this.renderPopTip(h, row.description);
+                            return renderPopTip(h, row.description);
                         }
                     },
                     {title: '操作', slot: 'action', width: 180, align: 'center', fixed: 'right'}
@@ -337,27 +337,7 @@
         methods: {
             editUserCompleteTask() {
                 this.editUserOpenState = false;
-            },
-            // 渲染成提示框
-            renderPopTip(h, showText) {
-                // 如果字符串长度超过10位，则多余的使用提示框进行显示
-                let text = showText;
-                if (showText && showText.length > 10)
-                    text = `${text.slice(0, 9)}...`
-
-                return h('Poptip', {
-                    props: {
-                        trigger: 'hover',
-                        placement: 'right'
-                    }
-                }, [
-                    h('div', text),
-                    h('p', {
-                        slot: 'content'
-                    }, [
-                        h('div', {style: {wordWrap: 'break-word'}}, showText)
-                    ])
-                ])
+                this.loadTableData();
             },
             // 添加用户信息
             addUser() {

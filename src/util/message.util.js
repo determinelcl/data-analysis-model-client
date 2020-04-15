@@ -12,3 +12,25 @@ export function errorMessage(error, _this) {
         _this.$Message.error(`${error.message}`)
     }
 }
+
+// 渲染成提示框
+export function renderPopTip(h, showText) {
+    // 如果字符串长度超过10位，则多余的使用提示框进行显示
+    let text = showText;
+    if (showText && showText.length > 10)
+        text = `${text.slice(0, 9)}...`
+
+    return h('Poptip', {
+        props: {
+            trigger: 'hover',
+            placement: 'right'
+        }
+    }, [
+        h('div', text),
+        h('p', {
+            slot: 'content'
+        }, [
+            h('div', {style: {wordWrap: 'break-word'}}, showText)
+        ])
+    ])
+}

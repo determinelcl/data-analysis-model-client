@@ -47,7 +47,8 @@
                 <Col span="12">
                     <FormItem label="角色分配" label-position="top" prop="roleList">
                         <Select v-model="formData.roleList" multiple filterable placeholder="分配用户角色">
-                            <Option v-for="item in roleList" :value="item.id" :key="item.id">
+                            <Option v-for="item in roleList"
+                                    :disabled="item.status === 1" :value="item.id" :key="item.id">
                                 {{ item.name }}
                             </Option>
                         </Select>
@@ -81,7 +82,7 @@
 
     export default {
         name: "EditUser",
-        props: ['formData', 'editType', 'clickBtn'],
+        props: ['formData', 'editType'],
         data() {
             return {
                 areaList: [],
@@ -118,10 +119,11 @@
                     if (!data.data)
                         return;
 
-                    if (data.data.length !== 0)
-                        item.children = this.switchAreaData(data.data);
                     item.loading = false;
-                    callback();
+                    if (data.data.length === 0) return;
+
+                    // item.children = this.switchAreaData(data.data);
+                    callback(this.switchAreaData(data.data));
                 }).catch(error => {
                     console.log(error)
                     errorMessage(error, this);
