@@ -18,6 +18,7 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {
+        rootRouter: '/home',
         style: {
             contentStyle: {
                 margin: '16px 24px',
@@ -163,7 +164,7 @@ export default new Vuex.Store({
                     let tempItem = temp;
                     // 将itemList的id转换成parentId-childId的形式
                     tempItem.id = `${item.id}-${temp.id}`;
-                    tempItem.url = temp.url;
+                    tempItem.url = `${state.rootRouter}/${temp.component.url}`;
                     item.itemList.push(tempItem);
                 });
             });

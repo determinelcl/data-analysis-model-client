@@ -6,6 +6,40 @@
             <Spin fix v-if="spinShow">
                 <LoadingIcon></LoadingIcon>
             </Spin>
+            <Modal v-model="delBatchConfirm" width="360">
+                <p slot="header" style="color:#f60;text-align:center">
+                    <Icon type="ios-information-circle"></Icon>
+                    <span>删除确认</span>
+                </p>
+                <div style="text-align:center">
+                    <p>是否删除选中的角色？</p>
+                </div>
+                <div slot="footer">
+                    <Button type="error" size="large" long
+                            :loading="modalLoading" @click="deleteRoleBatch()">删除
+                    </Button>
+                </div>
+            </Modal>
+            <Modal v-model="delConfirm" width="360">
+                <p slot="header" style="color:#f60;text-align:center">
+                    <Icon type="ios-information-circle"></Icon>
+                    <span>删除确认</span>
+                </p>
+                <div style="text-align:center">
+                    <p>是否删除此角色？</p>
+                </div>
+                <div slot="footer">
+                    <Button type="error" size="large" long
+                            :loading="modalLoading" @click="deleteRole()">删除
+                    </Button>
+                </div>
+            </Modal>
+            <Drawer :title="updateRoleText" v-model="editRoleOpenState" width="360"
+                    :mask-closable="false" :styles="styles">
+                <EditRole ref="editRole" :form-data="editRoleForm" @addSuccess="addRoleSuccess"
+                          :edit-type="editType" @completeTask="editRoleCompleteTask"></EditRole>
+            </Drawer>
+
 
             <Form ref="formInline" :model="searchForm">
                 <Row type="flex" justify="space-between" :style="{padding: '0 20px'}">
@@ -37,31 +71,12 @@
                     <Button type="primary" @click="addRole()"
                             :style="{width: '108px'}" icon="md-add">新增角色
                     </Button>
-                    <Drawer :title="updateRoleText" v-model="editRoleOpenState" width="360"
-                            :mask-closable="false" :styles="styles">
-                        <EditRole ref="editRole" :form-data="editRoleForm" @addSuccess="addRoleSuccess"
-                                  :edit-type="editType" @completeTask="editRoleCompleteTask"></EditRole>
-                    </Drawer>
                 </Col>
                 <Col span="3">
                     <Button @click="removeRoleBatch()" :style="{width: '108px'}">
                         <Icon type="ios-trash-outline" size="17"/>
                         批量删除
                     </Button>
-                    <Modal v-model="delBatchConfirm" width="360">
-                        <p slot="header" style="color:#f60;text-align:center">
-                            <Icon type="ios-information-circle"></Icon>
-                            <span>删除确认</span>
-                        </p>
-                        <div style="text-align:center">
-                            <p>是否删除选中的角色？</p>
-                        </div>
-                        <div slot="footer">
-                            <Button type="error" size="large" long
-                                    :loading="modalLoading" @click="deleteRoleBatch()">删除
-                            </Button>
-                        </div>
-                    </Modal>
                 </Col>
                 <Col span="3">
                     <Dropdown @on-click="changRoleStatus">
@@ -78,26 +93,12 @@
                     </Dropdown>
                 </Col>
             </Row>
-            <Table ref="roleTableRef" :data="tableData" :columns="tableColumns" stripe no-data-text="用户数据为空">
+            <Table ref="roleTableRef" :data="tableData" :columns="tableColumns" stripe no-data-text="角色数据为空">
                 <template slot-scope="{ row, index }" slot="action">
                     <Button type="warning" size="small" style="margin-right: 5px" @click="updateRole(index)">
                         更新
                     </Button>
                     <Button type="error" size="small" @click="remove(index)">删除</Button>
-                    <Modal v-model="delConfirm" width="360">
-                        <p slot="header" style="color:#f60;text-align:center">
-                            <Icon type="ios-information-circle"></Icon>
-                            <span>删除确认</span>
-                        </p>
-                        <div style="text-align:center">
-                            <p>是否删除此角色？</p>
-                        </div>
-                        <div slot="footer">
-                            <Button type="error" size="large" long
-                                    :loading="modalLoading" @click="deleteRole()">删除
-                            </Button>
-                        </div>
-                    </Modal>
                 </template>
             </Table>
 
@@ -239,7 +240,7 @@
             updateRole(index) {
                 this.editRoleOpenState = true;
                 this.editType = 'update';
-                this.updateRoleText = '更新用户';
+                this.updateRoleText = '更新角色';
                 let role = deepClone(this.tableData[index]);
                 console.log(role)
 

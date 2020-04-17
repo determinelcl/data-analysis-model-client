@@ -12,7 +12,7 @@
                     <Submenu :name="submenu.id" v-show="!isCollapsed"
                              v-for="submenu in menu.menuList" :key="submenu.id">
                         <template slot="title">
-                            <Icon :type="submenu.icon"/>
+                            <Icon :type="submenu.icon.type"/>
                             <span>{{ submenu.name }}</span>
                         </template>
                         <MenuItem :name="menuItem.id" v-for="menuItem in submenu.itemList" :key="menuItem.id">
@@ -25,7 +25,7 @@
                              :class="menu.openMenuName === submenu.id ? 'collapsed-menu-item-selected' : ''">
                         <template slot="title">
                             <Dropdown placement="right-start" @on-click="selectedDropdownMenu">
-                                <Icon :type="submenu.icon" size="22"/>
+                                <Icon :type="submenu.icon.type" size="22"/>
                                 <DropdownMenu slot="list">
                                     <DropdownItem :name="menuItem.id"
                                                   v-for="menuItem in submenu.itemList" :key="menuItem.id">
@@ -308,17 +308,17 @@
                 // 判断路由组件是否存在，如果存在直接跳过
                 let flag = false;
                 routerChildren.forEach(temp => {
-                    if (temp.path === item.component)
+                    if (temp.path === item.url)
                         flag = true;
                 });
                 if (flag) return;
 
                 // 添加新的路由
                 let temp = {
-                    path: item.component,
-                    name: item.component,
+                    path: item.component.url,
+                    name: item.component.url,
                     // issue：webpack不支持import中是变量，所以这个样子写才可以
-                    component: () => import(`@/views/${item.componentUri}.vue`),
+                    component: () => import(`@/views/${item.component.url}.vue`),
                     meta: {requireAuth: true}
                 };
                 routerChildren.push(temp);

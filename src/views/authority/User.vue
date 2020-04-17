@@ -5,6 +5,39 @@
         <div :style="this.$store.state.style.contentStyle">
 
             <Spin fix v-if="spinShow"><LoadingIcon></LoadingIcon></Spin>
+            <Modal v-model="delBatchConfirm" width="360">
+                <p slot="header" style="color:#f60;text-align:center">
+                    <Icon type="ios-information-circle"></Icon>
+                    <span>删除确认</span>
+                </p>
+                <div style="text-align:center">
+                    <p>是否删除选中的用户？</p>
+                </div>
+                <div slot="footer">
+                    <Button type="error" size="large" long
+                            :loading="modalLoading" @click="deleteUserBatch()">删除
+                    </Button>
+                </div>
+            </Modal>
+            <Modal v-model="delConfirm" width="360">
+                <p slot="header" style="color:#f60;text-align:center">
+                    <Icon type="ios-information-circle"></Icon>
+                    <span>删除确认</span>
+                </p>
+                <div style="text-align:center">
+                    <p>是否删除此用户？</p>
+                </div>
+                <div slot="footer">
+                    <Button type="error" size="large" long
+                            :loading="modalLoading" @click="deleteUser()">删除
+                    </Button>
+                </div>
+            </Modal>
+            <Drawer :title="updateUserText" v-model="editUserOpenState" width="720"
+                    :mask-closable="false" :styles="styles">
+                <EditUser :form-data="editUserForm"
+                          :edit-type="editType" @completeTask="editUserCompleteTask"></EditUser>
+            </Drawer>
 
             <Form ref="formInline" :model="searchForm" :rules="searchRule">
                 <Row type="flex" justify="space-between" :style="{padding: '0 20px'}">
@@ -60,31 +93,12 @@
                     <Button type="primary" @click="addUser()"
                             :style="{width: '108px'}" icon="md-add">新增用户
                     </Button>
-                    <Drawer :title="updateUserText" v-model="editUserOpenState" width="720"
-                            :mask-closable="false" :styles="styles">
-                        <EditUser :form-data="editUserForm"
-                                  :edit-type="editType" @completeTask="editUserCompleteTask"></EditUser>
-                    </Drawer>
                 </Col>
                 <Col span="3">
                     <Button @click="removeUserBatch()" :style="{width: '108px'}">
                         <Icon type="ios-trash-outline" size="17"/>
                         批量删除
                     </Button>
-                    <Modal v-model="delBatchConfirm" width="360">
-                        <p slot="header" style="color:#f60;text-align:center">
-                            <Icon type="ios-information-circle"></Icon>
-                            <span>删除确认</span>
-                        </p>
-                        <div style="text-align:center">
-                            <p>是否删除选中的用户？</p>
-                        </div>
-                        <div slot="footer">
-                            <Button type="error" size="large" long
-                                    :loading="modalLoading" @click="deleteUserBatch()">删除
-                            </Button>
-                        </div>
-                    </Modal>
                 </Col>
                 <Col span="3">
                     <Dropdown @on-click="changUserStatus">
@@ -111,20 +125,6 @@
                     </Drawer>
                     <Button type="warning" size="small" style="margin-right: 5px" @click="updateUser(index)">更新</Button>
                     <Button type="error" size="small" @click="remove(index)">删除</Button>
-                    <Modal v-model="delConfirm" width="360">
-                        <p slot="header" style="color:#f60;text-align:center">
-                            <Icon type="ios-information-circle"></Icon>
-                            <span>删除确认</span>
-                        </p>
-                        <div style="text-align:center">
-                            <p>是否删除此用户？</p>
-                        </div>
-                        <div slot="footer">
-                            <Button type="error" size="large" long
-                                    :loading="modalLoading" @click="deleteUser()">删除
-                            </Button>
-                        </div>
-                    </Modal>
                 </template>
             </Table>
 
@@ -496,10 +496,6 @@
     }
 </script>
 
-<style lang="less" scoped>
+<style scoped>
 
-    /deep/ .ivu-modal-mask, /deep/ .ivu-drawer-mask {
-        clear: page;
-        background-color: rgba(55, 55, 55, .2);
-    }
 </style>
