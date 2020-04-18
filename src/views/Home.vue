@@ -27,7 +27,7 @@
                             <Dropdown placement="right-start" @on-click="selectedDropdownMenu">
                                 <Icon :type="submenu.icon.type" size="22"/>
                                 <DropdownMenu slot="list">
-                                    <DropdownItem :name="menuItem.id"
+                                    <DropdownItem :name="menuItem.id" style="position: relative; z-index: 100"
                                                   v-for="menuItem in submenu.itemList" :key="menuItem.id">
                                         {{ menuItem.name }}
                                     </DropdownItem>

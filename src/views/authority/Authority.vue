@@ -135,6 +135,7 @@
                 editAuthorityOpenState: false,
                 updateAuthorityText: '',
                 tableData: [],
+                originParentAuthorityList: [],
                 editType: 'add',
                 editAuthorityForm: {
                     id: null,
@@ -170,7 +171,7 @@
                             if (!row.parentId) return h('div', '');
 
                             let parentName = '';
-                            this.tableData.forEach(authority => {
+                            this.originParentAuthorityList.forEach(authority => {
                                 if (authority.id === row.parentId)
                                     parentName = authority.name;
                             })
@@ -242,7 +243,6 @@
                         render: (h, params) => {
                             let row = params.row;
                             if (row.showType !== 0) return h('div', row.url);
-                            if (!row.url) return h('div', '');
 
                             let address = row.url;
                             if (row.component)
@@ -287,6 +287,7 @@
                 this.loadTableData();
             },
             searchAuthority() {
+                this.page.current = 1;
                 this.loadTableData();
             },
             resetSearchAuthority() {
@@ -422,6 +423,11 @@
             }
         },
         created() {
+            this.axios.post('/authority-server/search', {parentId: 0, paged: false}).then(({data}) => {
+                this.originParentAuthorityList = data.data.data;
+            }).catch(error => {
+                errorMessage(error, this);
+            });
             this.loadTableData();
         }
     }

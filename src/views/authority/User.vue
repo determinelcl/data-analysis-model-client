@@ -377,6 +377,7 @@
             },
             // 进行查询用户
             searchUser() {
+                this.page.current = 1;
                 this.loadTableData()
             },
             // 重置查询条件

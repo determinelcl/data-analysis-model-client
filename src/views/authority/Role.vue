@@ -225,6 +225,7 @@
                 this.loadTableData();
             },
             searchRole() {
+                this.page.current = 1;
                 this.loadTableData();
             },
             resetSearchRole() {

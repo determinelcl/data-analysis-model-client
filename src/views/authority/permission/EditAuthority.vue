@@ -16,7 +16,7 @@
             <Row :gutter="32">
                 <Col span="12">
                     <FormItem label="权限图标" label-position="top" prop="iconId">
-                        <Select v-model="formData.iconId" placeholder="请选择权限图标">
+                        <Select v-model="formData.iconId" placeholder="请选择权限图标" clearable>
                             <Option v-for="item in iconList" :key="item.id" :value="item.id">
                                 <Icon :type="item.type" size="large"></Icon>
                                 {{item.name}}
@@ -234,8 +234,6 @@
         },
         mounted() {
             this.$on('addAuthorityClick', () => {
-                // 将所有的表单数据都重置为原始值
-                this.formData = this.originFormData;
                 this.changShowType(0);
             });
 
