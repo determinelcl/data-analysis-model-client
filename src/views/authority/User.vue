@@ -38,6 +38,10 @@
                 <EditUser :form-data="editUserForm"
                           :edit-type="editType" @completeTask="editUserCompleteTask"></EditUser>
             </Drawer>
+            <Drawer :closable="false" v-model="userDetail" width="640"
+                    :styles="{overflow: 'auto', position: 'static'}">
+                <UserDetail :user-info="userInfo"></UserDetail>
+            </Drawer>
 
             <Form ref="formInline" :model="searchForm" :rules="searchRule">
                 <Row type="flex" justify="space-between" :style="{padding: '0 20px'}">
@@ -119,10 +123,6 @@
                 <template slot-scope="{ row, index }" slot="action">
                     <Button type="primary" size="small" style="margin-right: 5px" @click="showUserDetail(index)">详情
                     </Button>
-                    <Drawer :closable="false" v-model="userDetail" width="640"
-                            :styles="{overflow: 'auto', position: 'static'}">
-                        <UserDetail :user-info="userInfo"></UserDetail>
-                    </Drawer>
                     <Button type="warning" size="small" style="margin-right: 5px" @click="updateUser(index)">更新</Button>
                     <Button type="error" size="small" @click="remove(index)">删除</Button>
                 </template>
