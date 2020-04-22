@@ -7,6 +7,7 @@ import axios from 'axios'
 import VueAxios from 'vue-axios'
 import qs from 'qs'
 import ECharts from 'echarts'
+import 'echarts-gl'
 import {TOKEN_INFORMATION} from "./constant/system";
 
 Vue.config.productionTip = false;
