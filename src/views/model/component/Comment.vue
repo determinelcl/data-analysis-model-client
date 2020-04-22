@@ -1,7 +1,7 @@
 <template>
     <div>
         <!-- 分为主要的两行，第一行用于自身的评论，第二行用于展示评论的信息 -->
-        <Row gutter="20">
+        <Row :gutter="20">
             <Col span="3">
                 <Icon type="logo-github" size="50" :color="'#dbab82'"/>
             </Col>
@@ -17,18 +17,18 @@
             </Col>
         </Row>
         <Divider></Divider>
-        <Row gutter="20" style="margin-top: 10px">
+        <Row :gutter="20" style="margin-top: 10px">
             <Col span="3">
                 <Icon type="logo-github" size="50" :color="'#dbab82'"/>
                 <Button type="primary" size="small" style="margin: 10px auto auto 3px;">关注</Button>
             </Col>
             <Col span="21">
                 <div style="margin: 20px auto">
-                    <Row gutter="10" type="flex" style="height: 38px">
+                    <Row :gutter="10" type="flex" style="height: 38px">
                         <Col><b>determination</b></Col>
                         <Col style="color: #19be6b">企业认证</Col>
                     </Row>
-                    <Row gutter="10">
+                    <Row :gutter="10">
                         <Col>
                             <p style="line-height: 30px">
                                 “爱国、敬业、诚信、友善”，是公民基本道德规范，是从个人行为层面对社会主义核心价值观基本理念的凝练。
@@ -36,7 +36,7 @@
                             </p>
                         </Col>
                     </Row>
-                    <Row gutter="15" type="flex" align="middle"
+                    <Row :gutter="15" type="flex" align="middle"
                          justify="start" style="color: rgba(0,0,0,.45); font-size: 10px">
                         <Col>
                             2020-05-20 05:20:00
@@ -55,16 +55,16 @@
                     </Row>
                     <Row type="flex" align="middle" style="margin-top: 15px">
                         <Col>
-                            <Row gutter="15">
+                            <Row :gutter="15">
                                 <Col span="2">
                                     <Icon type="logo-github" size="30" :color="'#dbab82'"/>
                                 </Col>
                                 <Col span="22">
-                                    <Row gutter="10" type="flex" style="height: 25px">
+                                    <Row :gutter="10" type="flex" style="height: 25px">
                                         <Col><b>determination</b></Col>
                                         <Col style="color: #19be6b">企业认证</Col>
                                     </Row>
-                                    <Row gutter="10">
+                                    <Row :gutter="10">
                                         <Col>
                                             <p style="line-height: 30px">
                                                 “爱国、敬业、诚信、友善”，是公民基本道德规范，是从个人行为层面对社会主义核心价值观基本理念的凝练。
@@ -72,7 +72,7 @@
                                             </p>
                                         </Col>
                                     </Row>
-                                    <Row gutter="15" type="flex" align="middle"
+                                    <Row :gutter="15" type="flex" align="middle"
                                          justify="start" style="color: rgba(0,0,0,.45); font-size: 10px">
                                         <Col>
                                             2020-05-20 05:20:00
@@ -96,7 +96,7 @@
                     </Row>
                 </div>
                 <div>
-                    <Row gutter="20">
+                    <Row :gutter="20">
                         <Col span="3">
                             <Icon type="logo-github" size="50" :color="'#dbab82'"/>
                         </Col>

@@ -14,13 +14,13 @@
             <Row :style="{height: '38px'}" type="flex" align="middle">
                 <Col span="12">
                     分组:
-                    <Tag color="green" size="small">
+                    <Tag color="green">
                         {{modelInfo.group.name}}
                     </Tag>
                 </Col>
                 <Col span="12">
                     状态:
-                    <Tag type="dot" size="small" :color="modelInfo.status ? 'success' : 'error'">
+                    <Tag type="dot" :color="modelInfo.status ? 'success' : 'error'">
                         {{modelInfo.status ? '启用' : '禁用'}}
                     </Tag>
                 </Col>
@@ -28,13 +28,13 @@
             <Row :style="{height: '38px'}" type="flex" align="middle">
                 <Col span="12">
                     标签:
-                    <Tag v-for="tag in modelInfo.tagList" :key="tag.id" size="small" color="orange">
+                    <Tag v-for="tag in modelInfo.tagList" :key="tag.id" color="orange">
                         {{tag.name}}
                     </Tag>
                 </Col>
                 <Col span="12">
                     类型:
-                    <Tag type="dot" size="small" :color="modelInfo.public === 0 ? 'success' : 'primary'">
+                    <Tag type="dot" :color="modelInfo.public === 0 ? 'success' : 'primary'">
                         {{modelInfo.public === 0 ? '公开' : '私有'}}
                     </Tag>
                 </Col>

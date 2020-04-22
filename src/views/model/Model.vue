@@ -1,6 +1,6 @@
 <template>
     <div>
-        <ComponentTitle name="模型管理" description="模型管理：添加、删除、修改、查询"></ComponentTitle>
+        <ComponentTitle name="模型管理" description="模型管理：添加、删除、修改、查询模型基本信息，以及版本管理、评论、点赞、关注和收藏"></ComponentTitle>
 
         <div :style="this.$store.state.style.contentStyle">
 
@@ -72,7 +72,7 @@
                         <Col>
                             <div class="list-description">状态</div>
                             <div :style="{width: '30px', alignContent: 'center', color: `${item.status === 0 ? '#19be6b': '#ed4014'}` }">
-                                {{item.status === 0? '启用': '禁用'}}
+                                {{item.status === 0 ? '启用': '禁用'}}
                             </div>
                         </Col>
                         <Col>
