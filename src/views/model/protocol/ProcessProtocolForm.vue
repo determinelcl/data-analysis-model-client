@@ -54,8 +54,14 @@
                         }
                     },
                     {
-                        title: '协议类型',
+                        title: '输出名称',
                         key: 'name',
+                        width: 200,
+                        tooltip: true
+                    },
+                    {
+                        title: '输出类型',
+                        key: 'outputType',
                         width: 100,
                         render: (h, params) => {
                             let outputType = ['图表', '文本', '图片', '矩阵', '语音', '流数据']
@@ -76,16 +82,19 @@
                 ],
                 protocolList: [
                     {
+                        name: '学习率曲线',
                         outputType: 0,
                         format: {},
                         description: '这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明'
                     },
                     {
+                        name: '查准率',
                         outputType: 1,
                         format: {},
                         description: '这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明'
                     },
                     {
+                        name: '查全率',
                         outputType: 2,
                         format: {},
                         description: '这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明'

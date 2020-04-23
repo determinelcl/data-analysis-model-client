@@ -1,5 +1,12 @@
 <template>
     <div>
+        <Row>
+            <Col span="24">
+                <FormItem label="输出名称" prop="imgSuffix" label-position="left" label-width="69">
+                    <Input v-model="formItem.name" placeholder="请输入输出数据的名称"/>
+                </FormItem>
+            </Col>
+        </Row>
         <Row type="flex" justify="space-between">
             <Col span="11">
                 <FormItem label="输出类型" prop="inputType" label-position="left" label-width="69">

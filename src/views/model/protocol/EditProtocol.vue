@@ -63,6 +63,7 @@
         data() {
             return {
                 outputFormItem: {
+                    name: null,
                     outputType: 0,
                     description: null,
                     format: {},
