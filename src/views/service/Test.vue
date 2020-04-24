@@ -1,12 +1,23 @@
 <template>
     <div>
-        服务的测试管理
+        <CommonTest :object-type="objectType"></CommonTest>
     </div>
 </template>
 
 <script>
+    import CommonTest from "../common/CommonTest";
+
     export default {
-        name: "Test"
+        name: "Test",
+        components: {CommonTest},
+        data() {
+            return {
+                objectType: {
+                    type: 'service',
+                    name: '服务'
+                }
+            }
+        }
     }
 </script>
 

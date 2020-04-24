@@ -1,12 +1,22 @@
 <template>
     <div>
-        服务的数据源管理
+        <CommonDataSource :object-type="objectType"></CommonDataSource>
     </div>
 </template>
 
 <script>
+    import CommonDataSource from "../common/CommonDataSource";
     export default {
-        name: "DataSource"
+        name: "DataSource",
+        components: {CommonDataSource},
+        data() {
+            return {
+                objectType: {
+                    type: 'service',
+                    name: '服务'
+                }
+            }
+        }
     }
 </script>
 

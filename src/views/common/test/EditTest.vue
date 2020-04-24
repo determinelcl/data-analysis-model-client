@@ -13,11 +13,19 @@
             <DatePicker type="datetime" placeholder="选择时间日期" style="width: 100%" v-model="formValidate.date">
             </DatePicker>
         </FormItem>
-        <FormItem label="模型" prop="city">
+        <FormItem label="模型" prop="city" v-if="objectType.type === 'model'">
             <Select v-model="formValidate.city" placeholder="Select your city">
-                <Option :value="0">图片识别</Option>
-                <Option :value="1">支持向量机</Option>
-                <Option :value="2">商品推荐</Option>
+                <Option :value="0">图片识别模型</Option>
+                <Option :value="1">支持向量机模型</Option>
+                <Option :value="2">商品推荐模型</Option>
+            </Select>
+        </FormItem>
+
+        <FormItem label="服务" prop="city" v-if="objectType.type === 'service'">
+            <Select v-model="formValidate.city" placeholder="Select your city">
+                <Option :value="0">图片识别服务</Option>
+                <Option :value="1">支持向量机服务</Option>
+                <Option :value="2">商品推荐服务</Option>
             </Select>
         </FormItem>
         <FormItem label="数据源" prop="city">
@@ -60,6 +68,7 @@
 <script>
     export default {
         name: "EditTest",
+        props: ['objectType'],
         data() {
             return {
                 formValidate: {
