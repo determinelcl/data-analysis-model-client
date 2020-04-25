@@ -1,11 +1,13 @@
 <template>
     <Form ref="formItem" :model="formItem" :rules="ruleValidate" :label-width="100">
-        <FormItem label="计划名称" prop="name">
+        <FormItem label="服务名称" prop="name">
             <Input v-model="formItem.name" placeholder="请输入计划名称"></Input>
         </FormItem>
-        <FormItem label="开始时间" prop="date">
-            <DatePicker type="datetime" placeholder="选择时间日期" style="width: 100%" v-model="formItem.date">
-            </DatePicker>
+        <FormItem label="状态">
+            <i-switch v-model="formItem.status" size="large" true-color="#13ce66" false-color="#ff4949">
+                <span slot="open">启用</span>
+                <span slot="close">禁用</span>
+            </i-switch>
         </FormItem>
         <FormItem label="模型" prop="city">
             <ModelProcessForm></ModelProcessForm>

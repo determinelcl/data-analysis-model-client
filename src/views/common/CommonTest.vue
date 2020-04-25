@@ -1,7 +1,7 @@
 <template>
     <div>
         <ComponentTitle :name="`${objectType.name}测试管理`"
-                        :description="`${objectType.name}的测试管理：添加、删除、修改、查询测试计划，用于测试数据分析模型`">
+                        :description="`${objectType.name}的测试管理：添加、删除、修改、查询测试计划`">
         </ComponentTitle>
 
         <div :style="this.$store.state.style.contentStyle">

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <ComponentTitle name="服务管理" description="服务管理：添加、删除、修改、查询服务基本信息"></ComponentTitle>
+        <ComponentTitle name="服务配置管理" description="服务配置管理：添加、删除、修改、查询服务基本信息"></ComponentTitle>
 
         <div :style="this.$store.state.style.contentStyle">
 
@@ -8,16 +8,13 @@
                     :mask-closable="false" :styles="editServiceStyle">
                 <EditConfiguration></EditConfiguration>
             </Drawer>
-            <Drawer v-model="serviceInformation" width="720" :closable="false">
-
-            </Drawer>
             <Modal v-model="delConfirm" width="360">
                 <p slot="header" style="color:#f60;text-align:center">
                     <Icon type="ios-information-circle"></Icon>
                     <span>删除确认</span>
                 </p>
                 <div style="text-align:center">
-                    <p>是否删除当前服务？</p>
+                    <p>是否删除当前服务配置？</p>
                 </div>
                 <div slot="footer">
                     <Button type="error" size="large" long @click="deleteService()">删除</Button>
@@ -44,7 +41,7 @@
             <Row type="flex" justify="start" :style="{padding: 0, margin: '0 0 20px 0'}">
                 <Col span="24">
                     <Button type="dashed" @click="addService()"
-                            :style="{width: '100%'}" icon="md-add">新增服务
+                            :style="{width: '100%'}" icon="md-add">新增服务配置
                     </Button>
                 </Col>
             </Row>
@@ -60,9 +57,9 @@
                             </div>
                         </Col>
                         <Col>
-                            <div style="width: 80px;">运行状态</div>
-                            <div :style="{width: '80px', alignContent: 'center', color: `${item.run === 0 ? '#19be6b': '#ed4014'}` }">
-                                {{item.run === 0 ? '正在运行': '未运行'}}
+                            <div style="width: 80px;">测试状态</div>
+                            <div :style="{width: '80px', alignContent: 'center', color: `${item.test === 0 ? '#19be6b': '#ed4014'}` }">
+                                {{item.test === 0 ? '已通过': '未测试'}}
                             </div>
                         </Col>
                         <Col>
@@ -70,8 +67,6 @@
                             <div style="width: 138px; align-content: center">{{item.updated}}</div>
                         </Col>
                         <Col>
-                            <a style="margin: 0 3px; color: #19be6b" @click="showServiceDetail(index)">详情</a>
-                            |
                             <a style="margin: 0 3px; color: #ff9900" @click="updateService(index)">更新</a>
                             |
                             <a style="margin: 0 3px; color:#ed4014;" @click="removeService(index)">删除</a>
@@ -101,7 +96,6 @@
             return {
                 editService: false,
                 editServiceText: '',
-                serviceInformation: false,
                 delConfirm: false,
                 serviceFormItem: {
                     name: '计算机视觉',
@@ -158,7 +152,7 @@
                         name: '图像识别',
                         description: '这是一个图像识别的组件',
                         status: 0,
-                        run: 0,
+                        test: 0,
                         updated: '2020-04-30 00:00:00'
                     },
                     {
@@ -166,7 +160,7 @@
                         name: '支持向量机',
                         description: '这是一个分类器',
                         status: 0,
-                        run: 0,
+                        test: 0,
                         updated: '2020-04-30 00:00:00'
                     },
                     {
@@ -174,7 +168,7 @@
                         name: '文字识别',
                         description: '这是一个神经网络服务',
                         status: 1,
-                        run: 1,
+                        test: 1,
                         updated: '2020-04-30 00:00:00'
                     }
                 ]
@@ -186,10 +180,6 @@
             },
             resetSearchService() {
 
-            },
-            showServiceDetail(index) {
-                console.log(index);
-                this.serviceInformation = true;
             },
             addService() {
                 this.editServiceText = '新增服务';
