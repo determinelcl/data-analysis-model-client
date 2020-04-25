@@ -9,6 +9,7 @@ import qs from 'qs'
 import ECharts from 'echarts'
 import 'echarts-gl'
 import {TOKEN_INFORMATION} from "./constant/system";
+import './assets/iconfont'
 
 Vue.config.productionTip = false;
 Vue.prototype.$echarts = ECharts;

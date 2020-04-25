@@ -80,9 +80,9 @@
                             </Col>
                             <Col class="col-flex col-cursor col-space">
                                 <Dropdown>
-                                    <Avatar src="https://i.loli.net/2017/08/21/599a521472424.jpg"
+                                    <Avatar src="http://localhost:8081/img/mine.1b06ac96.jpg"
                                             :style="{height: '23px', width: '23px'}"/>
-                                    <span :style="{margin: '0 0 0 8px'}">Jack</span>
+                                    <span :style="{margin: '0 0 0 8px'}">determination</span>
                                     <DropdownMenu slot="list">
                                         <DropdownItem>
                                             <div :style="{display: 'flex', alignItems: 'center'}">
