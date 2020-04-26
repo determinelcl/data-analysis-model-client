@@ -46,7 +46,7 @@
                             </span>
                         </div>
                         <div style="margin-bottom: 16px;">
-                            <Icon type="ios-locate-outline" size="15" style="margin-right: 5px"/>
+                            <Icon type="ios-pin-outline" size="15" style="margin-right: 5px"/>
                             <span style="color: #2d8cf0">
                                 江苏省常州市
                             </span>

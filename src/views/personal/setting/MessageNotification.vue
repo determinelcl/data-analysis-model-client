@@ -3,7 +3,7 @@
         <h2>新消息通知</h2>
         <List style="padding: 0 16px; margin-top: 16px" :split="false">
             <ListItem>
-                <ListItemMeta title="评论/恢复消息" description="其他用户对模型、博文等进行评论/恢复时，接受消息通知" />
+                <ListItemMeta title="评论/回复消息" description="其他用户对模型、博文等进行评论/回复时，接受消息通知" />
                 <template slot="action">
                     <li>
                         <i-switch>
