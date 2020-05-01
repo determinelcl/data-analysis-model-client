@@ -29,8 +29,11 @@ export default new Vuex.Store({
             }
         },
         user: {
+            id: -1,
             username: '',
-            userIcon: ''
+            userIcon: '',
+            // 关注的用户列表
+            followList: [],
         },
         tab: {
             activeTab: '',

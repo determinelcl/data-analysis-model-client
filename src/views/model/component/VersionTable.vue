@@ -1,15 +1,15 @@
 <template>
     <div style="margin: 30px 20px 0 20px">
-        <Modal v-model="delBatchConfirm" width="360">
+        <Modal v-model="delConfirm" width="360">
             <p slot="header" style="color:#f60;text-align:center">
                 <Icon type="ios-information-circle"></Icon>
                 <span>删除确认</span>
             </p>
             <div style="text-align:center">
-                <p>是否删除选中的版本？</p>
+                <p>是否删除当前的版本？</p>
             </div>
             <div slot="footer">
-                <Button type="error" size="large" long @click="deleteVersionBatch()">删除</Button>
+                <Button type="error" size="large" long @click="deleteVersion()">删除</Button>
             </div>
         </Modal>
 
@@ -19,38 +19,31 @@
                         :style="{width: '108px'}" icon="md-add">新增版本
                 </Button>
             </Col>
-            <Col span="5">
-                <Button @click="removeVersionBatch()" :style="{width: '108px'}">
-                    <Icon type="ios-trash-outline" size="17"/>
-                    批量删除
-                </Button>
-            </Col>
-            <Col span="5">
-                <Dropdown @on-click="changVersionStatus">
-
-                    <Button :style="{width: '108px'}">
-                        更过操作
-                        <Icon type="ios-arrow-down"></Icon>
-                    </Button>
-                    <DropdownMenu slot="list">
-                        <DropdownItem name="0">启用版本</DropdownItem>
-                        <DropdownItem name="2">禁用版本</DropdownItem>
-                    </DropdownMenu>
-                </Dropdown>
-            </Col>
         </Row>
-        <Table :columns="versionColumn" :data="versionList" :show-header="false"></Table>
+        <Table :columns="versionColumn" :data="versionList" :show-header="false">
+            <template slot-scope="{ row, index }" slot="action">
+                <a style="margin: 0 3px; color: #19be6b" @click="enableVersion(index)">启用</a>
+                |
+                <a style="margin: 0 3px; color: #ff9900" @click="deprecateVersion(index)">Deprecated</a>
+                |
+                <a style="margin: 0 3px; color: #ed4014" @click="disableVersion(index)">禁用</a>
+                |
+                <a style="margin: 0 3px; color:#ed4014;" @click="removeVersion(index)">删除</a>
+            </template>
+        </Table>
     </div>
 </template>
 
 <script>
     import ModelVersion from "./ModelVersion";
+    import {errorMessage} from "../../../util/message.util";
 
     export default {
         name: "VersionTable",
         data() {
             return {
-                delBatchConfirm: false,
+                delConfirm: false,
+                delConfirmIndex: -1;
                 versionColumn: [
                     {type: 'selection', width: 60, align: 'center'},
                     {
@@ -88,42 +81,10 @@
                         title: '描述',
                         key: 'description',
                         tooltip: true
-                    }
+                    },
+                    {title: '操作', slot: 'action', width: 180, align: 'center'}
                 ],
-                versionList: [
-                    {
-                        name: '1.0.0',
-                        tag: 1,
-                        public: 1,
-                        status: true,
-                        description: '当前版本为最新稳定版',
-                        copyright: '86394305313880343813748392',
-                        copyrightType: 0,
-                        copyrightDesc: '测试的版权标识',
-                        _expanded: true
-                    },
-                    {
-                        name: '1.2.0',
-                        tag: 3,
-                        public: 1,
-                        status: true,
-                        description: '当前版本为测试版',
-                        copyright: '86394305313880343813748392',
-                        copyrightType: 0,
-                        copyrightDesc: '测试的版权标识'
-                    },
-                    {
-                        name: '1.2.1',
-                        tag: 4,
-                        public: 1,
-                        status: false,
-                        description: '当前版本为Snapshot版本',
-                        copyright: '86394305313880343813748392',
-                        copyrightType: 0,
-                        copyrightDesc: '测试的版权标识',
-                        _disableExpand: true
-                    }
-                ]
+                versionList: []
             }
         },
         methods: {
@@ -134,9 +95,9 @@
                 })
 
                 let version = {
-                    name: '0.0.0',
-                    tag: 4,
-                    public: 1,
+                    name: '1.0.0',
+                    type: 4,
+                    public: 0,
                     status: false,
                     description: '新增版本的默认值',
                     copyright: '',
@@ -147,15 +108,69 @@
                 }
                 this.versionList.push(version);
             },
-            changVersionStatus() {
+            enableVersion(index) {
+                let versionId = this.versionList[index].id;
 
+                this.axios.patch(`/model-server/version/enable/${versionId}`).then(({data}) => {
+                    console.log(data)
+                    this.versionList[index].status = 0;
+                }).catch(error => {
+                    console.log(error)
+                    errorMessage(error, this);
+                });
             },
-            removeVersionBatch() {
-                this.delBatchConfirm = true;
-            },
-            deleteVersionBatch() {
+            deprecateVersion(index) {
+                let versionId = this.versionList[index].id;
 
+                this.axios.patch(`/model-server/version/deprecate/${versionId}`).then(({data}) => {
+                    console.log(data)
+                    this.versionList[index].status = 2;
+                }).catch(error => {
+                    console.log(error)
+                    errorMessage(error, this);
+                });
             },
+            disableVersion(index) {
+                let versionId = this.versionList[index].id;
+
+                this.axios.patch(`/model-server/version/disable/${versionId}`).then(({data}) => {
+                    console.log(data)
+                    this.versionList[index].status = 1;
+                }).catch(error => {
+                    console.log(error)
+                    errorMessage(error, this);
+                });
+            },
+            removeVersion(index) {
+                this.delConfirm = true;
+                this.delConfirmIndex = index;
+            },
+            deleteVersion() {
+                let versionId = this.versionList[this.delConfirmIndex].id;
+
+                this.axios.delete(`/model-server/version/delete/${versionId}`).then(({data}) => {
+                    console.log(data)
+                    this.versionList.slice(this.delConfirmIndex, 1)
+                }).catch(error => {
+                    console.log(error)
+                    errorMessage(error, this);
+                });
+            },
+            loadVersionData(modelId) {
+                // 加载模型版本列表数据
+                this.axios.get(`/model-server/version/list/${modelId}`).then(({data}) => {
+                    this.versionList = data.data;
+                    this.versionList[0]['_expanded'] = true
+                }).catch(error => {
+                    console.log(error)
+                    errorMessage(error, this);
+                });
+            }
+        },
+        mounted() {
+            this.$on('loadVersionList', (model) => {
+                this.loadVersionData(model.id)
+            });
         }
     }
 </script>

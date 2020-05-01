@@ -3,19 +3,21 @@
         <ComponentTitle name="模型管理" description="模型管理：添加、删除、修改、查询模型基本信息，以及版本管理、评论、点赞、关注和收藏"></ComponentTitle>
 
         <div :style="this.$store.state.style.contentStyle">
-
+            <Spin fix v-if="spinShow">
+                <LoadingIcon></LoadingIcon>
+            </Spin>
             <Drawer title="上传模型" v-model="uploadModel" width="720"
                     :mask-closable="false" :styles="uploadModelStyle">
-                <UploadModel></UploadModel>
+                <UploadModel @completeTask="editModelCompleteTask" @addSuccess="addAuthoritySuccess"></UploadModel>
             </Drawer>
             <Drawer title="版本管理" v-model="versionManagement" width="720" :mask-closable="false">
-                <VersionTable></VersionTable>
+                <VersionTable ref="versionListRef"></VersionTable>
             </Drawer>
             <Drawer title="更新模型信息" v-model="modelForm" width="720" :mask-closable="false">
                 <ModelForm :form-item="modelFormItem" operation="update"></ModelForm>
             </Drawer>
             <Drawer v-model="modelInformation" width="720" :closable="false">
-                <ModelInformation :model-info="modelFormItem"></ModelInformation>
+                <ModelInformation ref="modelInfoRef"></ModelInformation>
 
             </Drawer>
             <Modal v-model="delConfirm" width="360">
@@ -32,20 +34,28 @@
             </Modal>
 
             <Form ref="formInline" :model="searchForm">
-                <Row type="flex" :style="{padding: 0, height: '38px'}">
-                    <Col span="8">
+                <Row type="flex" justify="space-between" :style="{padding: 0, height: '38px'}" :gutter="15">
+                    <Col span="6">
                         <FormItem label="模型名称：" prop="name" label-position="left">
                             <Input type="text" v-model="searchForm.name" placeholder="请输入"
-                                   :style="{width: '252px'}"/>
+                                   :style="{width: '180px'}"/>
                         </FormItem>
                     </Col>
-                    <Col span="8">
-                        <FormItem label="模型版本：" prop="version" label-position="left">
-                            <Input type="text" v-model="searchForm.version" placeholder="请输入"
-                                   :style="{width: '252px'}"/>
+                    <Col span="6">
+                        <FormItem label="发布者：" prop="version" label-position="left">
+                            <Input type="text" v-model="searchForm.username" placeholder="请输入"
+                                   :style="{width: '180px'}"/>
                         </FormItem>
                     </Col>
-                    <Col span="8" :style="{display: 'flex', justifyContent:'flex-end', paddingRight: '20px'}">
+                    <Col span="6">
+                        <FormItem label="类型：" prop="type" label-position="left">
+                            <RadioGroup v-model="searchForm.modelType">
+                                <Radio :label="0">我的</Radio>
+                                <Radio :label="1">收藏</Radio>
+                            </RadioGroup>
+                        </FormItem>
+                    </Col>
+                    <Col span="5" :style="{display: 'flex', justifyContent:'flex-end', paddingRight: '20px'}">
                         <FormItem>
                             <Button type="primary" @click="searchModel()">查询</Button>
                         </FormItem>
@@ -65,7 +75,7 @@
                 </Col>
             </Row>
             <List>
-                <ListItem v-for="(item, index) in data" :key="item.id">
+                <ListItem v-for="(item, index) in tableData" :key="item.id">
                     <ListItemMeta :title="item.name" :description="item.description"/>
                     <Row type="flex" justify="center" align="middle" :gutter="38"
                          :style="{color: 'rgba(0,0,0,.45)', height: '100%'}">
@@ -78,7 +88,7 @@
                         <Col>
                             <div style="width: 90px; align-content: center">发布者</div>
                             <div style="width: 90px; align-content: center">
-                                <a>{{item.publisher}}</a>
+                                <a>{{item.username}}</a>
                             </div>
                         </Col>
                         <Col>
@@ -90,15 +100,15 @@
                             <div style="display: flex;">
                                 <li style="margin-right: 5px">
                                     <Icon type="ios-star-outline" size="15" :color="'#ff9900'"/>
-                                    {{item.star}}
+                                    {{item.starSize}}
                                 </li>
                                 <li style="margin-right: 5px">
                                     <Icon type="ios-thumbs-up-outline" size="15" :color="'#19be6b'"/>
-                                    {{item.good}}
+                                    {{item.thumbsUpSize}}
                                 </li>
                                 <li>
                                     <Icon type="ios-chatbubbles-outline" size="15" :color="'#2d8cf0'"/>
-                                    {{item.comment}}
+                                    {{item.commentSize}}
                                 </li>
                             </div>
                         </Col>
@@ -131,17 +141,22 @@
     import VersionTable from "./component/VersionTable";
     import ModelForm from "./component/ModelForm";
     import ModelInformation from "./component/ModelInformation";
+    import {deepClone} from "../../util/object.util";
+    import {errorMessage} from "../../util/message.util";
+    import LoadingIcon from "../../components/LoadingIcon";
 
     export default {
         name: "Management",
-        components: {ModelInformation, ModelForm, VersionTable, UploadModel, ComponentTitle},
+        components: {LoadingIcon, ModelInformation, ModelForm, VersionTable, UploadModel, ComponentTitle},
         data() {
             return {
+                spinShow: false,
                 uploadModel: false,
                 versionManagement: false,
                 modelForm: false,
                 modelInformation: false,
                 delConfirm: false,
+                delConfirmIndex: -1,
                 modelFormItem: {
                     name: '计算机视觉',
                     public: 0,
@@ -164,127 +179,97 @@
                 },
                 searchForm: {
                     name: null,
-                    version: null
+                    username: null,
+                    modelType: 0
                 },
                 page: {
                     total: 100,
                     current: 1,
                     size: 10,
-                    sizeOpts: [10, 20, 30, 40, 50]
+                    sizeOpts: [10, 20, 30, 40, 50],
+                    paged: true
                 },
-                tableColumns: [
-                    {
-                        title: '状态',
-                        key: 'status',
-                        render: (h, params) => {
-                            const row = params.row;
-                            const color = row.status === 0 ? 'success' : 'error';
-                            const text = row.status === 0 ? '激活' : '禁用';
-
-                            return h('Tag', {
-                                props: {
-                                    type: 'dot',
-                                    color: color
-                                }
-                            }, text);
-                        }
-                    },
-                    {title: '发布者', key: 'publisher'},
-                    {title: '更新日期', key: 'updated'}
-                ],
-                data: [
-                    {
-                        id: 1,
-                        name: '图像识别',
-                        description: '这是一个图像识别的组件',
-                        versionModel: 1,
-                        status: 0,
-                        updated: '2020-04-30 00:00:00',
-                        publisher: 'determination',
-                        star: 123,
-                        good: 456,
-                        comment: 789,
-                        versionList: [
-                            {id: 1, name: '2.2.0', tag: 'lasted'},
-                            {id: 2, name: '2.0.0', tag: 'GA'},
-                            {id: 3, name: '1.0.0', tag: 'normal'}
-                        ]
-                    },
-                    {
-                        id: 2,
-                        name: '支持向量机',
-                        description: '这是一个分类器',
-                        versionModel: 4,
-                        status: 0,
-                        updated: '2020-04-30 00:00:00',
-                        publisher: 'determination',
-                        star: 123,
-                        good: 456,
-                        comment: 789,
-                        versionList: [
-                            {id: 4, name: '2.2.0', tag: 'lasted'},
-                            {id: 5, name: '2.0.0', tag: 'GA'},
-                            {id: 6, name: '1.0.0', tag: 'normal'}
-                        ]
-                    },
-                    {
-                        id: 3,
-                        name: '文字识别',
-                        description: '这是一个神经网络模型',
-                        versionModel: 7,
-                        status: 1,
-                        updated: '2020-04-30 00:00:00',
-                        publisher: 'determination',
-                        star: 123,
-                        good: 456,
-                        comment: 789,
-                        versionList: [
-                            {id: 7, name: '2.2.0', tag: 'lasted'},
-                            {id: 8, name: '2.0.0', tag: 'GA'},
-                            {id: 9, name: '1.0.0', tag: 'normal'}
-                        ]
-                    }
-                ]
+                tableData: []
             }
         },
         methods: {
+            editModelCompleteTask() {
+                this.updateModel = false;
+            },
+            addAuthoritySuccess() {
+                this.uploadModel = false;
+                this.loadTableData()
+            },
             searchModel() {
-
+                this.loadTableData()
             },
             resetSearchModel() {
-
+                Object.keys(this.searchForm).forEach(prop => this.searchForm[prop] = null)
+                this.searchForm.modelType = 0
             },
             showModelVersion(index) {
-                console.log(index);
                 this.versionManagement = true;
+                // 在进入版本管理之前首先加载版本列表
+                this.$refs.versionListRef.$emit("loadVersionList", this.tableData[index]);
             },
             showModelDetail(index) {
                 console.log(index);
                 this.modelInformation = true;
+                let model = this.tableData[index];
+                this.$refs.modelInfoRef.$emit('loadModelInfo', model)
             },
             updateModel(index) {
                 console.log(index);
                 this.modelForm = true;
+                this.modelFormItem = this.tableData[index]
             },
             removeModel(index) {
                 console.log(index);
                 this.delConfirm = true;
+                this.delConfirmIndex = index;
             },
             deleteModel() {
+                let modelId = this.tableData[this.delConfirmIndex].id;
 
+                this.axios.delete(`/model-server/delete/${modelId}`).then(({data}) => {
+                    console.log(data)
+                    this.loadTableData()
+                }).catch(error => {
+                    console.log(error)
+                    errorMessage(error, this);
+                });
             },
             // 切换页面
             changePage(page) {
                 this.page.current = page;
-                // this.loadTableData();
+                this.loadTableData();
             },
             changePageSize(pageSize) {
                 // 如果每页显示的数据发生改变，则还是从第一页开始查询
                 this.page.size = pageSize;
                 this.page.current = 1;
 
-                // this.loadTableData()
+                this.loadTableData()
             },
+            loadTableData() {
+                let condition = deepClone(this.searchForm);
+                Object.assign(condition, this.page)
+                // 显示加载提示信息
+                this.spinShow = true;
+                // 加载模型列表数据
+                this.axios.post('/model-server/list', condition).then(({data}) => {
+                    this.tableData = data.data.data;
+                    this.page.total = data.data.total;
+                    this.spinShow = false;
+                }).catch(error => {
+                    console.log(error)
+                    this.spinShow = false;
+                    errorMessage(error, this);
+                });
+            }
+        },
+        created() {
+            this.loadTableData();
         }
     }
 </script>

@@ -1,15 +1,23 @@
 export function errorMessage(error, _this) {
     if (error.response) {
         if (error.response.data.message instanceof Array) {
-            error.response.data.message.forEach(msg => _this.$Message.error(msg))
+            let err = '';
+            error.response.data.message.forEach(msg => {
+                _this.$Message.error(msg)
+                err += msg + ' '
+            })
+            return err
         } else {
             _this.$Message.error(`${error.response.data.message}`)
+            return error.response.data.message
         }
     } else if (error.request) {
         _this.$Message.error(`请求失败，请检查网络连接是否正常！`)
         console.log(error.request)
+        return '请求失败，请检查网络连接是否正常！';
     } else {
         _this.$Message.error(`${error.message}`)
+        return error.message;
     }
 }
 
