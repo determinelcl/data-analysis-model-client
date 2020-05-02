@@ -1,15 +1,15 @@
 <template>
     <div>
         <Tabs :animated="false" @on-click="switchTab">
-            <TabPane label="评论" :name="1" icon="ios-chatbubbles" style="padding: 0 20px">
+            <TabPane label="评论" name="comment" icon="ios-chatbubbles" style="padding: 0 20px">
                 <Comment ref="commentRef"></Comment>
             </TabPane>
-            <TabPane label="点赞" :name="2" icon="md-thumbs-up">
+            <TabPane label="点赞" name="thumpsUp" icon="md-thumbs-up">
                 <Row type="flex" align="middle" justify="space-around" v-for="item in thumpsUpList" :key="item.id">
                     <Col style="display:flex; justify-content: center">
                         <Icon type="logo-github" size="30" :color="'#dbab82'"/>
                         <div style="margin: 3px auto 3px 10px"><b>{{item.user.username}}</b></div>
-                        <div style="margin: 3px auto 3px 15px; color: #19be6b">企业认证</div>
+                        <div style="margin: 3px auto 3px 15px; color: #19be6b">{{authenticationDesc[item.user.authentication.type]}}</div>
                     </Col>
                     <Col>
                         {{item.created}}
@@ -23,25 +23,25 @@
 
                         <Button type="warning" size="small" @click="removeFollowUser(item.user.id)"
                                 v-if="$store.state.user.followList.indexOf(item.user.id) > -1">
-                            <Icon type="md-remove" />
+                            <Icon type="md-remove"/>
                             取消关注
                         </Button>
                     </Col>
                 </Row>
                 <Divider></Divider>
                 <div style="display: flex; justify-content: center;">
-                    <Page v-model="page" :total="page.total" :current="page.current" @on-change="changePageThumpsUp"
-                          show-elevator :page-size-opts="page.sizeOpts" :page-size="page.size"
+                    <Page v-model="pageThumpsUp" :total="pageThumpsUp.total" :current="pageThumpsUp.current" @on-change="changePageThumpsUp"
+                          show-elevator :page-size-opts="pageThumpsUp.sizeOpts" :page-size="pageThumpsUp.size"
                           show-sizer show-total @on-page-size-change="changePageSizeThumpsUp"></Page>
                 </div>
             </TabPane>
 
-            <TabPane label="收藏" :name="3" icon="ios-star">
+            <TabPane label="收藏" name="star" icon="ios-star">
                 <Row type="flex" align="middle" justify="space-around" v-for="item in starList" :key="item.id">
                     <Col style="display:flex; justify-content: center">
                         <Icon type="logo-github" size="30" :color="'#dbab82'"/>
                         <div style="margin: 3px auto 3px 10px"><b>{{item.user.username}}</b></div>
-                        <div style="margin: 3px auto 3px 15px; color: #19be6b">企业认证</div>
+                        <div style="margin: 3px auto 3px 15px; color: #19be6b">{{authenticationDesc[item.user.authentication.type]}}</div>
                     </Col>
                     <Col>
                         {{item.created}}
@@ -55,15 +55,15 @@
 
                         <Button type="warning" size="small" @click="removeFollowUser(item.user.id)"
                                 v-if="$store.state.user.followList.indexOf(item.user.id) > -1">
-                            <Icon type="md-remove" />
+                            <Icon type="md-remove"/>
                             取消关注
                         </Button>
                     </Col>
                 </Row>
                 <Divider></Divider>
                 <div style="display: flex; justify-content: center;">
-                    <Page v-model="page" :total="page.total" :current="page.current" @on-change="changePageStar"
-                          show-elevator :page-size-opts="page.sizeOpts" :page-size="page.size"
+                    <Page v-model="pageStar" :total="pageStar.total" :current="pageStar.current" @on-change="changePageStar"
+                          show-elevator :page-size-opts="pageStar.sizeOpts" :page-size="pageStar.size"
                           show-sizer show-total @on-page-size-change="changePageSizeStar"></Page>
                 </div>
             </TabPane>
@@ -85,6 +85,8 @@
                 targetType: -1,
                 thumpsUpList: [],
                 starList: [],
+                authenticationDesc: ["未认证", "个人认证", "学生认证", "教师/教授认证", "团队认证", "高校认证", "企业认证"],
+
                 pageStar: {
                     total: 100,
                     current: 1,
@@ -132,11 +134,11 @@
             },
             switchTab(tabName) {
                 // 评论
-                if (tabName === 1)
+                if (tabName === 'comment')
                     this.$refs.commentRef.$emit("loadCommentInfo", this.target, this.targetType)
-                else if (tabName === 2)  // 点赞
+                else if (tabName === 'thumpsUp')  // 点赞
                     this.loadThumpsUpData()
-                else if (tabName === 3)  // 收藏
+                else if (tabName === 'star')  // 收藏
                     this.loadStarData()
             },
             // 切换页面

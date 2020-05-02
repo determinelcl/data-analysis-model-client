@@ -75,9 +75,10 @@
     import Logo from "../components/Logo";
     import Internationalization from "../components/Internationalization";
     import qs from 'qs';
-    import {ADD_ACCOUNT, UPDATE_MENU_LIST} from "../store/mutations.type";
+    import {ADD_ACCOUNT, UPDATE_ACCOUNT, UPDATE_MENU_LIST} from "../store/mutations.type";
     import {mapMutations} from "vuex";
     import {errorMessage} from "../util/message.util";
+    import {deepClone} from "../util/object.util";
 
     export default {
         name: 'Login',
@@ -102,7 +103,7 @@
         },
         computed: {
             ...mapMutations([
-                ADD_ACCOUNT, UPDATE_MENU_LIST
+                ADD_ACCOUNT, UPDATE_ACCOUNT, UPDATE_MENU_LIST
             ])
         },
         created() {
@@ -119,18 +120,22 @@
             handleSubmit(name) {
                 this.$refs[name].validate((valid) => {
                     if (valid) {
-                        let formData = this.form;
+                        let formData = deepClone(this.form);
                         formData['grant_type'] = 'password';
                         formData['client_id'] = 'client';
                         formData['client_secret'] = 'secret';
 
                         this.$Loading.start();
-                        this.axios.post("/oauth2-server/oauth/token", qs.stringify(this.form), {
+                        this.axios.post("/oauth2-server/oauth/token", qs.stringify(formData), {
                             headers: {'Content-Type': 'application/x-www-form-urlencoded'}
                         }).then(({data}) => {
                             this.$store.commit(ADD_ACCOUNT, {
                                 tokenInfo: JSON.stringify(data), username: formData.username
                             });
+
+                            this.axios.get(`/user-server/detail/${formData.username}`).then(({data}) => {
+                                this.$store.commit(UPDATE_ACCOUNT, data.data)
+                            })
                             // 登录成功获取菜单数据
                             return this.axios.get(`/authority-server/list/user/${formData.username}`);
                         }).then(({data}) => {

@@ -20,8 +20,8 @@
                 </Col>
                 <Col span="12">
                     状态:
-                    <Tag type="dot" :color="modelInfo.status ? 'success' : 'error'">
-                        {{modelInfo.status ? '启用' : '禁用'}}
+                    <Tag type="dot" :color="modelInfo.status === 0 ? 'success' : 'error'">
+                        {{modelInfo.status === 0 ? '启用' : '禁用'}}
                     </Tag>
                 </Col>
             </Row>
@@ -34,8 +34,8 @@
                 </Col>
                 <Col span="12">
                     类型:
-                    <Tag type="dot" :color="modelInfo.public === 0 ? 'success' : 'primary'">
-                        {{modelInfo.public === 0 ? '公开' : '私有'}}
+                    <Tag type="dot" :color="modelInfo.publicType === 0 ? 'success' : 'primary'">
+                        {{modelInfo.publicType === 0 ? '公开' : '私有'}}
                     </Tag>
                 </Col>
             </Row>
@@ -74,15 +74,27 @@
         components: {ActiveInfo},
         data() {
             return {
-                modelInfo: null,
+                modelInfo: {
+                    name: '',
+                    git: '',
+                    group: {name: ''},
+                    tagList: [ {name: '机器学习'}],
+                    status: 0,
+                    public: 0,
+                    description: ''
+                },
                 versionColumn: [
                     {
                         title: '版本',
-                        key: 'name'
+                        key: 'name',
+                        tooltip: true,
+                        width: 100
                     },
                     {
                         title: '标识',
                         key: 'type',
+                        tooltip: true,
+                        width: 130,
                         render: (h, params) => {
                             let row = params.row;
                             let versionTag = ['最新新版本', '最新稳定版本', '稳定版本', '测试版本', '快照版本']
@@ -93,6 +105,8 @@
                     {
                         title: '类型',
                         key: 'publicType',
+                        tooltip: true,
+                        width: 80,
                         render: (h, params) => {
                             let row = params.row;
 
@@ -102,6 +116,8 @@
                     {
                         title: '状态',
                         key: 'status',
+                        tooltip: true,
+                        width: 80,
                         render: (h, params) => {
                             let row = params.row;
 
@@ -109,21 +125,21 @@
                                 style: {
                                     width: '30px',
                                     alignContent: 'center',
-                                    color: `${row.status ? '#19be6b' : '#ed4014'}`
+                                    color: `${row.status === 0 ? '#19be6b' : row.status === 2 ? '#ff9900' :'#ed4014'}`
                                 }
-                            }, row.status ? '启用' : '禁用');
+                            }, row.status === 0 ? '启用' : row.status === 2 ? '过时' : '禁用');
                         }
                     },
                     {
                         title: '模型大小',
                         key: 'modelSize',
-                        width: 50,
+                        width: 100,
                         tooltip: true,
                     },
                     {
                         title: '协议',
                         key: 'protocol',
-                        width: 50,
+                        width: 180,
                         tooltip: true,
                         render: (h, params) => {
                             let row = params.row;
@@ -139,6 +155,8 @@
                     {
                         title: '版权类型',
                         key: 'copyrightType',
+                        tooltip: true,
+                        width: 100,
                         render: (h, params) => {
                             let row = params.row;
                             let copyrightTypeList = ['专利', '软件著作权', '其他']
@@ -149,6 +167,8 @@
                     {
                         title: '版权图片',
                         key: 'copyrightImg',
+                        tooltip: true,
+                        width: 100,
                         render: (h, params) => {
                             let row = params.row;
                             // todo: 访问版权的图片
@@ -160,6 +180,7 @@
                         title: '版权说明',
                         key: 'copyrightDesc',
                         tooltip: true,
+                        width: 100,
                         render: (h, params) => {
                             let row = params.row;
                             // todo: 访问版权的图片
@@ -170,7 +191,8 @@
                     {
                         title: '描述',
                         key: 'description',
-                        tooltip: true
+                        tooltip: true,
+                        width: 100,
                     },
                 ],
                 versionList: [],

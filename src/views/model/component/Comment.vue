@@ -1,5 +1,13 @@
 <template>
     <div>
+        <Modal
+                v-model="commentReplyFlag"
+                :title="`回复：${commentReplyUser}`"
+                @on-ok="newCommentReply">
+                <Input v-model="commentReply" type="textarea" :rows="6"
+                       placeholder="请自觉遵守互联网相关的政策法规，严禁发布色情、暴力、反动的言论。"/>
+        </Modal>
+
         <!-- 分为主要的两行，第一行用于自身的评论，第二行用于展示评论的信息 -->
         <Row :gutter="20">
             <Col span="3">
@@ -55,17 +63,17 @@
                             {{item.unLikeNum}}
                         </Col>
                         <Col>
-                            <a @click="commentReplyOperation(item.id, 0)">回复</a>
+                            <a @click="commentReplyOperation(item.id, 0, item)">回复</a>
                         </Col>
                     </Row>
                     <Row type="flex" align="middle" style="margin-top: 15px" v-for="reply in item.replyList"
                          :key="reply.id">
                         <Col>
-                            <Row :gutter="15">
-                                <Col span="2">
+                            <Row :gutter="30">
+                                <Col span="3">
                                     <Icon type="logo-github" size="30" :color="'#dbab82'"/>
                                 </Col>
-                                <Col span="22">
+                                <Col span="20">
                                     <Row :gutter="10" type="flex" style="height: 25px">
                                         <Col><b>{{reply.user.username}}</b></Col>
                                         <Col style="color: #19be6b">企业认证</Col>
@@ -95,7 +103,7 @@
                                             {{reply.unLikeNum}}
                                         </Col>
                                         <Col>
-                                            <a @click="commentReplyOperation(reply.id, 1)">回复</a>
+                                            <a @click="commentReplyOperation(reply.id, 1, reply)">回复</a>
                                         </Col>
                                     </Row>
                                 </Col>
@@ -104,28 +112,9 @@
 
                     </Row>
                 </div>
-                <div v-if="commentReplyFlag">
-                    <Row :gutter="20">
-                        <Col span="3">
-                            <Icon type="logo-github" size="50" :color="'#dbab82'"/>
-                        </Col>
-                        <Col span="18">
-                            <Input v-model="commentReply" type="textarea" style="height: 90px;"
-                                   placeholder="请自觉遵守互联网相关的政策法规，严禁发布色情、暴力、反动的言论。"/>
-                        </Col>
-                        <Col span="3">
-                            <Button type="primary"
-                                    style="height: 90px; width: 100%; display: flex; justify-content: center"
-                                    @click="newCommentReply">
-                                <div>发表</div>
-                                <div>评论</div>
-                            </Button>
-                        </Col>
-                    </Row>
-                </div>
             </Col>
+            <Divider></Divider>
         </Row>
-        <Divider></Divider>
         <div style="display: flex; justify-content: center;">
             <Page v-model="page" :total="page.total" :current="page.current" @on-change="changePage"
                   show-elevator :page-size-opts="page.sizeOpts" :page-size="page.size"
@@ -144,6 +133,7 @@
                 comment: '',
                 commentReply: '',
                 commentReplyFlag: false,
+                commentReplyUser: '',
                 topicType: 0,
                 replyId: -1,
                 replyType: -1,
@@ -192,14 +182,15 @@
                     errorMessage(error, this);
                 });
             },
-            commentReplyOperation(replyId, replyType) {
-                this.commentReplyFlag = true
+            commentReplyOperation(replyId, replyType, item) {
+                this.commentReplyFlag = true;
+                this.commentReplyUser = item.user.username;
                 this.replyId = replyId;
                 this.replyType = replyType;
             },
             newCommentReply() {
                 let item = {
-                    content: this.comment,
+                    content: this.commentReply,
                     // 评论ID或者回复的ID
                     targetId: this.replyId,
                     // 0：回复评论，1：回复别人的回复
@@ -210,10 +201,11 @@
                 // 显示加载提示信息
                 this.axios.post(`/information-server/comment/reply`, item).then(({data}) => {
                     console.log(data)
-                    this.commentReplyFlag = false
+                    this.commentReplyFlag = false;
                     this.loadTableData()
                 }).catch(error => {
                     console.log(error)
+                    this.commentReplyFlag = false;
                     errorMessage(error, this);
                 });
             },

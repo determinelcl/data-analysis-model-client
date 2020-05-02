@@ -14,13 +14,13 @@
             </Select>
         </FormItem>
         <FormItem label="类型">
-            <RadioGroup v-model="formItem.public">
+            <RadioGroup v-model="formItem.publicType">
                 <Radio :label="0">公开</Radio>
                 <Radio :label="1">私有</Radio>
             </RadioGroup>
         </FormItem>
         <FormItem label="状态">
-            <i-switch v-model="formItem.status" size="large" true-color="#13ce66" false-color="#ff4949">
+            <i-switch v-model="versionStatus" size="large" true-color="#13ce66" false-color="#ff4949">
                 <span slot="open">启用</span>
                 <span slot="close">禁用</span>
             </i-switch>
@@ -34,12 +34,10 @@
             </Upload>
         </FormItem>
         <FormItem label="I/O协议">
-            <Select v-model="formItem.protocolId">
-                <Option :value="0">Lasted <span style="float:right;color:#ccc">最新版</span></Option>
-                <Option :value="1">.GA <span style="float:right;color:#ccc">最新稳定版</span></Option>
-                <Option :value="2">GA <span style="float:right;color:#ccc">稳定版</span></Option>
-                <Option :value="3">Beta <span style="float:right;color:#ccc">测试版</span></Option>
-                <Option :value="4">Snapshot <span style="float:right;color:#ccc">快照版</span></Option>
+            <Select v-model="protocol">
+                <Option v-for="protocol in protocolList" :key="protocol.id" :value="protocol.id">
+                    {{protocol.name}} <span style="float:right;color:#ccc">最新版</span>
+                </Option>
             </Select>
         </FormItem>
         <FormItem label="版本描述">
@@ -69,8 +67,9 @@
                    placeholder="请输入" :rows="4"></Input>
         </FormItem>
         <FormItem v-if="operation === 'update'">
-            <Button type="primary" @click="handleSubmit('formValidate')">更新</Button>
-            <Button @click="handleReset('formValidate')" style="margin-left: 8px">重置</Button>
+            <Button type="primary" @click="updateVersion()" v-if="formItem.id > -1">更新</Button>
+            <Button type="primary" @click="addVersion()" v-if="formItem.id === -1">添加</Button>
+            <Button @click="handleReset()" style="margin-left: 8px">重置</Button>
         </FormItem>
     </Form>
 </template>
@@ -88,8 +87,29 @@
                 protocolList: []
             }
         },
+        computed: {
+            versionStatus: {
+                get() {
+                    return this.formItem.status === 0
+                },
+                set(status) {
+                    this.formItem.status = status ? 0 : 1
+                }
+            },
+            protocol: {
+                get() {
+                    if (this.formItem.protocol)
+                        return this.formItem.protocol.id
+
+                    return this.formItem.protocolId
+                },
+                set(protocolId) {
+                    this.formItem.protocolId = protocolId
+                }
+            }
+        },
         methods: {
-            handleSubmit() {
+            updateVersion() {
                 let version = deepClone(this.formItem);
                 // 上传的模型的url
                 version['modelUrl'] = '';
@@ -100,9 +120,31 @@
                 // 模型版权图片的大小
                 version['copyrightImgSize'] = '';
 
-                this.axios.post(`/model-server/version/add`, this.formItem).then(({data}) => {
-                    this.versionList = data.data;
-                    this.versionList[0]['_expanded'] = true
+                if (!version.protocolId)
+                    version.protocolId = this.formItem.protocol.id;
+
+                this.axios.put(`/model-server/version/update`, version).then(({data}) => {
+                    console.log(data)
+                    this.$emit("completeTask")
+                }).catch(error => {
+                    console.log(error)
+                    errorMessage(error, this);
+                });
+            },
+            addVersion() {
+                let version = deepClone(this.formItem);
+                // 上传的模型的url
+                version['modelUrl'] = '';
+                // 模型文件的大小
+                version['modelSize'] = '';
+                // 模型的版权图片的url
+                version['copyrightImg'] = '';
+                // 模型版权图片的大小
+                version['copyrightImgSize'] = '';
+
+                this.axios.post(`/model-server/version/add`, version).then(({data}) => {
+                    console.log(data)
+                    this.$emit("completeTask")
                 }).catch(error => {
                     console.log(error)
                     errorMessage(error, this);

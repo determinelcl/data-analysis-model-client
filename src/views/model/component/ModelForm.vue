@@ -4,13 +4,13 @@
             <Input v-model="formItem.name" placeholder="请输入模型名称"></Input>
         </FormItem>
         <FormItem label="类型">
-            <RadioGroup v-model="formItem.public">
+            <RadioGroup v-model="formItem.publicType">
                 <Radio :label="0">公开</Radio>
                 <Radio :label="1">私有</Radio>
             </RadioGroup>
         </FormItem>
         <FormItem label="状态">
-            <i-switch v-model="formItem.status" size="large" true-color="#13ce66" false-color="#ff4949">
+            <i-switch v-model="versionStatus" size="large" true-color="#13ce66" false-color="#ff4949">
                 <span slot="open">启用</span>
                 <span slot="close">禁用</span>
             </i-switch>
@@ -23,7 +23,7 @@
             </Select>
         </FormItem>
         <FormItem label="标签">
-            <Select v-model="formItem.tagIdList" filterable allow-create multiple @on-create="createTag">
+            <Select v-model="tagIdList" filterable allow-create multiple @on-create="createTag">
                 <Option v-for="item in tagList" :key="item.id" :value="item.id">{{item.name}}</Option>
             </Select>
         </FormItem>
@@ -53,6 +53,27 @@
                 groupList: [],
                 tagList: [],
                 originForm: null,
+            }
+        },
+        computed: {
+            versionStatus: {
+                get() {
+                    return this.formItem.status === 0
+                },
+                set(status) {
+                    this.formItem.status = status ? 0 : 1
+                }
+            },
+            tagIdList: {
+                get() {
+                    let idList = []
+                    if (this.formItem.tagList)
+                        this.formItem.tagList.forEach(tag => idList.push(tag.id))
+                    return idList
+                },
+                set(idList) {
+                    this.formItem.tagIdList = idList
+                }
             }
         },
         methods: {
@@ -85,7 +106,7 @@
                 })
             },
             handleSubmit() {
-                this.axios.post(`/model-server/update`, this.formItem).then(({data}) => {
+                this.axios.put(`/model-server/update`, this.formItem).then(({data}) => {
                     console.log(data);
                     this.$emit('addSuccess')
                 }).catch(error => {
@@ -117,6 +138,11 @@
         },
         mounted() {
             this.originForm = deepClone(this.formItem);
+            console.log(this.originForm)
+            this.$on('loadClassificationData', () => {
+                this.loadGroupList()
+                this.loadTagList()
+            })
         }
     }
 </script>

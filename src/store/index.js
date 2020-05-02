@@ -10,7 +10,7 @@ import {
     REMOVE_ACCOUNT,
     UPDATE_MENU_LIST,
     PERSIST_STATE,
-    LOAD_STATE
+    LOAD_STATE, UPDATE_ACCOUNT
 } from "./mutations.type";
 import {STATE_INFORMATION, TOKEN_INFORMATION} from "../constant/system";
 
@@ -153,6 +153,11 @@ export default new Vuex.Store({
             localStorage.setItem(TOKEN_INFORMATION, data.tokenInfo);
 
             state.user.username = data.username;
+        },
+        [UPDATE_ACCOUNT](state, user) {
+            state.user.id = user.id
+            state.user.username = user.username
+            state.user.followList = user.followIdList
         },
         [REMOVE_ACCOUNT](state) { // 退出登录
             console.log('REMOVE_ACCOUNT ' + state);

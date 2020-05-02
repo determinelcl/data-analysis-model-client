@@ -7,7 +7,7 @@
             <Step title="上传结果"></Step>
         </Steps>
         <div style="margin: 30px 20px 0 20px" v-if="current === 0">
-            <ModelForm :form-item="formItem" operation="add"></ModelForm>
+            <ModelForm ref="modelFormRef" :form-item="formItem" operation="add"></ModelForm>
         </div>
         <div style="margin: 30px 20px 0 20px" v-if="current === 1">
             <ModelVersion :form-item="modelVersion" operation="add"></ModelVersion>
@@ -45,8 +45,8 @@
                 modelVersion: {
                     name: null,
                     tag: 1,
-                    public: 1,
-                    status: true,
+                    publicType: 1,
+                    status: 0,
                     description: null,
                     copyright: null,
                     copyrightType: 0,
@@ -55,8 +55,8 @@
                 // 模型组件的基础表单
                 formItem: {
                     name: null,
-                    public: 0,
-                    status: true,
+                    publicType: 0,
+                    status: 0,
                     groupId: 0,
                     tagIdList: 0,
                     git: null,
@@ -80,8 +80,13 @@
                 }
             },
             submit() {
-                let model = deepClone(this.formItem);
-                model['versionList'] = [this.modelVersion]
+                let model = deepClone(this.formItem)
+                let modelVersion = deepClone(this.modelVersion)
+                modelVersion.status = modelVersion.status ? 0 : 1
+                model.status = model.status ? 0 : 1
+                model.userId = this.$store.state.user.id
+
+                model['versionList'] = [modelVersion]
                 this.axios.post(`/model-server/add`, model).then(({data}) => {
                     console.log(data);
                     this.$emit('completeTask')
@@ -95,6 +100,11 @@
         },
         created() {
             this.current = 0
+        },
+        mounted() {
+            this.$on('loadData', () => {
+                this.$refs.modelFormRef.$emit('loadClassificationData')
+            })
         }
     }
 </script>

@@ -8,15 +8,15 @@
             </Spin>
             <Drawer title="上传模型" v-model="uploadModel" width="720"
                     :mask-closable="false" :styles="uploadModelStyle">
-                <UploadModel @completeTask="editModelCompleteTask" @addSuccess="addAuthoritySuccess"></UploadModel>
+                <UploadModel ref="uploadModelRef" @completeTask="editModelCompleteTask" @addSuccess="addModelSuccess"></UploadModel>
             </Drawer>
             <Drawer title="版本管理" v-model="versionManagement" width="720" :mask-closable="false">
                 <VersionTable ref="versionListRef"></VersionTable>
             </Drawer>
             <Drawer title="更新模型信息" v-model="modelForm" width="720" :mask-closable="false">
-                <ModelForm :form-item="modelFormItem" operation="update"></ModelForm>
+                <ModelForm ref="modelFormRef" :form-item="modelFormItem" operation="update" @addSuccess="addModelSuccess"></ModelForm>
             </Drawer>
-            <Drawer v-model="modelInformation" width="720" :closable="false">
+            <Drawer v-model="modelInformation" width="720" :closable="false" draggable>
                 <ModelInformation ref="modelInfoRef"></ModelInformation>
 
             </Drawer>
@@ -35,27 +35,19 @@
 
             <Form ref="formInline" :model="searchForm">
                 <Row type="flex" justify="space-between" :style="{padding: 0, height: '38px'}" :gutter="15">
-                    <Col span="6">
+                    <Col span="8">
                         <FormItem label="模型名称：" prop="name" label-position="left">
                             <Input type="text" v-model="searchForm.name" placeholder="请输入"
-                                   :style="{width: '180px'}"/>
+                                   :style="{width: '252px'}"/>
                         </FormItem>
                     </Col>
-                    <Col span="6">
+                    <Col span="8">
                         <FormItem label="发布者：" prop="version" label-position="left">
                             <Input type="text" v-model="searchForm.username" placeholder="请输入"
-                                   :style="{width: '180px'}"/>
+                                   :style="{width: '252px'}"/>
                         </FormItem>
                     </Col>
-                    <Col span="6">
-                        <FormItem label="类型：" prop="type" label-position="left">
-                            <RadioGroup v-model="searchForm.modelType">
-                                <Radio :label="0">我的</Radio>
-                                <Radio :label="1">收藏</Radio>
-                            </RadioGroup>
-                        </FormItem>
-                    </Col>
-                    <Col span="5" :style="{display: 'flex', justifyContent:'flex-end', paddingRight: '20px'}">
+                    <Col span="8" :style="{display: 'flex', justifyContent:'flex-end', paddingRight: '20px'}">
                         <FormItem>
                             <Button type="primary" @click="searchModel()">查询</Button>
                         </FormItem>
@@ -69,7 +61,7 @@
             <Divider></Divider>
             <Row type="flex" justify="start" :style="{padding: 0, margin: '0 0 20px 0'}">
                 <Col span="24">
-                    <Button type="dashed" @click="uploadModel = true"
+                    <Button type="dashed" @click="uploadModelAction()"
                             :style="{width: '100%'}" icon="md-add">上传模型
                     </Button>
                 </Col>
@@ -127,8 +119,8 @@
 
             <Divider></Divider>
             <div style="display: flex; justify-content: center;">
-                <Page v-model="page" :total="page.total" :current="page.current" @on-change="changePage"
-                      show-elevator :page-size-opts="page.sizeOpts" :page-size="page.size"
+                <Page v-model="pageModel" :total="pageModel.total" :current="pageModel.current" @on-change="changePage"
+                      show-elevator :page-size-opts="pageModel.sizeOpts" :page-size="pageModel.size"
                       show-sizer show-total @on-page-size-change="changePageSize"></Page>
             </div>
         </div>
@@ -159,8 +151,8 @@
                 delConfirmIndex: -1,
                 modelFormItem: {
                     name: '计算机视觉',
-                    public: 0,
-                    status: true,
+                    publicType: 0,
+                    status: 0,
                     groupId: 0,
                     group: {name: '深度学习'},
                     tagId: 0,
@@ -179,10 +171,9 @@
                 },
                 searchForm: {
                     name: null,
-                    username: null,
-                    modelType: 0
+                    username: null
                 },
-                page: {
+                pageModel: {
                     total: 100,
                     current: 1,
                     size: 10,
@@ -196,8 +187,9 @@
             editModelCompleteTask() {
                 this.updateModel = false;
             },
-            addAuthoritySuccess() {
+            addModelSuccess() {
                 this.uploadModel = false;
+                this.modelForm = false;
                 this.loadTableData()
             },
             searchModel() {
@@ -206,6 +198,10 @@
             resetSearchModel() {
                 Object.keys(this.searchForm).forEach(prop => this.searchForm[prop] = null)
                 this.searchForm.modelType = 0
+            },
+            uploadModelAction() {
+                this.uploadModel = true
+                this.$refs.uploadModelRef.$emit('loadData');
             },
             showModelVersion(index) {
                 this.versionManagement = true;
@@ -222,6 +218,8 @@
                 console.log(index);
                 this.modelForm = true;
                 this.modelFormItem = this.tableData[index]
+                console.log(this.modelFormItem)
+                this.$refs.modelFormRef.$emit('loadClassificationData')
             },
             removeModel(index) {
                 console.log(index);
@@ -233,33 +231,35 @@
 
                 this.axios.delete(`/model-server/delete/${modelId}`).then(({data}) => {
                     console.log(data)
+                    this.delConfirm = false;
                     this.loadTableData()
                 }).catch(error => {
                     console.log(error)
+                    this.delConfirm = false;
                     errorMessage(error, this);
                 });
             },
             // 切换页面
-            changePage(page) {
-                this.page.current = page;
+            changePage(pageCurrent) {
+                this.pageModel.current = pageCurrent;
                 this.loadTableData();
             },
             changePageSize(pageSize) {
                 // 如果每页显示的数据发生改变，则还是从第一页开始查询
-                this.page.size = pageSize;
-                this.page.current = 1;
+                this.pageModel.size = pageSize;
+                this.pageModel.current = 1;
 
                 this.loadTableData()
             },
             loadTableData() {
                 let condition = deepClone(this.searchForm);
-                Object.assign(condition, this.page)
+                Object.assign(condition, this.pageModel)
                 // 显示加载提示信息
                 this.spinShow = true;
                 // 加载模型列表数据
                 this.axios.post('/model-server/list', condition).then(({data}) => {
                     this.tableData = data.data.data;
-                    this.page.total = data.data.total;
+                    this.pageModel.total = data.data.total;
                     this.spinShow = false;
                 }).catch(error => {
                     console.log(error)

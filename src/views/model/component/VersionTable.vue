@@ -1,5 +1,8 @@
 <template>
-    <div style="margin: 30px 20px 0 20px">
+    <div style="margin: 30px 20px 0 20px; position: relative">
+        <Spin fix v-if="spinShow">
+            <LoadingIcon></LoadingIcon>
+        </Spin>
         <Modal v-model="delConfirm" width="360">
             <p slot="header" style="color:#f60;text-align:center">
                 <Icon type="ios-information-circle"></Icon>
@@ -20,11 +23,11 @@
                 </Button>
             </Col>
         </Row>
-        <Table :columns="versionColumn" :data="versionList" :show-header="false">
+        <Table :columns="versionColumn" :data="versionList" :show-header="false" @on-expand="expandRow">
             <template slot-scope="{ row, index }" slot="action">
                 <a style="margin: 0 3px; color: #19be6b" @click="enableVersion(index)">启用</a>
                 |
-                <a style="margin: 0 3px; color: #ff9900" @click="deprecateVersion(index)">Deprecated</a>
+                <a style="margin: 0 3px; color: #ff9900" @click="deprecateVersion(index)">过时</a>
                 |
                 <a style="margin: 0 3px; color: #ed4014" @click="disableVersion(index)">禁用</a>
                 |
@@ -37,13 +40,17 @@
 <script>
     import ModelVersion from "./ModelVersion";
     import {errorMessage} from "../../../util/message.util";
+    import LoadingIcon from "../../../components/LoadingIcon";
 
     export default {
         name: "VersionTable",
+        components: {LoadingIcon},
         data() {
             return {
                 delConfirm: false,
-                delConfirmIndex: -1;
+                delConfirmIndex: -1,
+                spinShow: false,
+                model: {},
                 versionColumn: [
                     {type: 'selection', width: 60, align: 'center'},
                     {
@@ -54,6 +61,9 @@
                                 props: {
                                     formItem: params.row,
                                     operation: 'update'
+                                },
+                                on: {
+                                    completeTask: this.editComplete
                                 }
                             })
                         }
@@ -72,9 +82,9 @@
                                 style: {
                                     width: '30px',
                                     alignContent: 'center',
-                                    color: `${row.status ? '#19be6b' : '#ed4014'}`
+                                    color: `${row.status === 0 ? '#19be6b' : row.status === 2 ? '#ff9900' : '#ed4014'}`
                                 }
-                            }, row.status ? '启用' : '禁用');
+                            }, row.status === 0 ? '启用' : row.status === 2 ? '过时' : '禁用');
                         }
                     },
                     {
@@ -82,12 +92,23 @@
                         key: 'description',
                         tooltip: true
                     },
-                    {title: '操作', slot: 'action', width: 180, align: 'center'}
+                    {title: '操作', slot: 'action', width: 280, align: 'center'}
                 ],
                 versionList: []
             }
         },
         methods: {
+            expandRow(row, status) {
+                if (!status) return;
+
+                this.versionList.forEach(version => {
+                    if (version.id === row.id) return;
+                    version['_expanded'] = false
+                })
+            },
+            editComplete() {
+                this.loadVersionData(this.model.id)
+            },
             addVersion() {
                 this.versionList.forEach(version => {
                     version['_expanded'] = false;
@@ -95,14 +116,16 @@
                 })
 
                 let version = {
+                    id: -1,
                     name: '1.0.0',
                     type: 4,
-                    public: 0,
-                    status: false,
+                    publicType: 0,
+                    status: 1,
                     description: '新增版本的默认值',
                     copyright: '',
                     copyrightType: 0,
                     copyrightDesc: '',
+                    modelId: this.model.id,
                     _disableExpand: false,
                     _expanded: true
                 }
@@ -150,25 +173,31 @@
 
                 this.axios.delete(`/model-server/version/delete/${versionId}`).then(({data}) => {
                     console.log(data)
-                    this.versionList.slice(this.delConfirmIndex, 1)
+                    this.delConfirm = false;
+                    this.loadVersionData(this.model.id)
                 }).catch(error => {
                     console.log(error)
+                    this.delConfirm = false;
                     errorMessage(error, this);
                 });
             },
             loadVersionData(modelId) {
                 // 加载模型版本列表数据
+                this.spinShow = true;
                 this.axios.get(`/model-server/version/list/${modelId}`).then(({data}) => {
                     this.versionList = data.data;
+                    this.spinShow = false;
                     this.versionList[0]['_expanded'] = true
                 }).catch(error => {
                     console.log(error)
+                    this.spinShow = false;
                     errorMessage(error, this);
                 });
             }
         },
         mounted() {
             this.$on('loadVersionList', (model) => {
+                this.model = model
                 this.loadVersionData(model.id)
             });
         }
