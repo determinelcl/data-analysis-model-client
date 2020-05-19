@@ -185,6 +185,7 @@
             ]),
             ...mapGetters({
                 findMenuItemByItemId: 'findMenuItemByItemId',
+                activeMenuItem: 'activeMenuItem',
                 level2MenuName: 'level2MenuName',
                 level3MenuName: 'level3MenuName'
             }),
@@ -223,6 +224,10 @@
             // 关闭标签页，删除store里面状态，然后通过路由跳转到当前页面
             handleTabRemove(tabName) {
                 this.$store.commit(REMOVE_TAB, tabName);
+
+                // 加载打开的菜单项，跳转到指定的页面
+                let activeMenuItem = this.activeMenuItem;
+                this.$router.push({path: activeMenuItem.url});
             },
             collapsedSide() {
                 let _this = this;
@@ -340,6 +345,10 @@
             window.onbeforeunload = () => {
                 _this.$store.commit(PERSIST_STATE);
             };
+
+            // 加载打开的菜单项，跳转到指定的页面
+            let activeMenuItem = this.activeMenuItem;
+            this.$router.push({path: activeMenuItem.url});
         }
     }
 </script>

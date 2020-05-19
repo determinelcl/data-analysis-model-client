@@ -10,7 +10,8 @@ import {
     REMOVE_ACCOUNT,
     UPDATE_MENU_LIST,
     PERSIST_STATE,
-    LOAD_STATE, UPDATE_ACCOUNT
+    LOAD_STATE,
+    UPDATE_ACCOUNT
 } from "./mutations.type";
 import {STATE_INFORMATION, TOKEN_INFORMATION} from "../constant/system";
 
@@ -54,6 +55,18 @@ export default new Vuex.Store({
                     menuItem = item;
                 })
             });
+            return menuItem;
+        },
+        // 获取打开的菜单项
+        activeMenuItem: state => {
+            let menuItem = null;
+            state.menu.menuList.forEach(menu => {
+                menu.itemList.forEach(item => {
+                    if (item.id !== state.menu.activeMenuName) return;
+                    menuItem = item;
+                })
+            });
+
             return menuItem;
         },
         // 用于动态更新面包屑导航文本
