@@ -6,7 +6,8 @@
 
         <Modal :title="dataSourceModalText" v-model="addDataSourceModal" scrollable :mask-closable="false" width="600px"
                :footer-hide="true">
-            <AddDataSource></AddDataSource>
+            <AddDataSource :type="addDataSourceType" :form-item="formItem" @cancelTask="addDataSourceModal = false"
+                           @completeTask="editDataSourceCompleteTask"></AddDataSource>
         </Modal>
         <Modal v-model="delConfirm" width="360">
             <p slot="header" style="color:#f60;text-align:center">
@@ -24,8 +25,8 @@
         <div :style="this.$store.state.style.contentStyle">
             <Row type="flex" justify="space-between" align="middle">
                 <Col span="12">
-                    <Input v-model="searchName" search size="large"
-                           enter-button="搜索" placeholder="数据源名称、类型、方式"/>
+                    <Input v-model="searchName" search size="large" @on-search="searchDataSource"
+                           enter-button="搜索" placeholder="数据源名称"/>
                 </Col>
                 <Col span="3">
                     <Button size="large" icon="md-add" @click="addDataSource()">新增数据源</Button>
@@ -53,7 +54,7 @@
                             </Col>
                         </Row>
                         <div style="margin: 15px 0">
-                            <div>类型：{{dataSource.type}}</div>
+                            <div>类型：{{datasourceType(dataSource)}}</div>
                             <div>
                                 状态：
                                 <span :style="{color: `${dataSource.status === 0 ? '#19be6b': '#ed4014'}`}">
@@ -61,18 +62,18 @@
                                 </span>
                             </div>
                             <div>
-                                存储方式：
-                                <span :style="{color: `${dataSource.store === 0 ? '#2d8cf0': '#19be6b'}`}">
-                                    {{dataSource.store === 0 ? '本地': '平台'}}
+                                公开类型：
+                                <span :style="{color: `${dataSource.publicType === 0 ? '#19be6b' : '#2d8cf0'}`}">
+                                    {{dataSource.publicType === 0 ? '公开': '私有'}}
                                 </span>
                             </div>
-                            <div>创建时间：{{dataSource.updated}}</div>
+                            <div>创建时间：{{dataSource.created}}</div>
                         </div>
                         <Divider style="margin: 0 0 8px 0"/>
                         <div style="display: flex; justify-content: space-around; height:30px;">
 
                             <div style="height: 100%; display: flex; justify-content: center; align-items: center">
-                                <a>
+                                <a href="javascript:void(0)" @click="changeStatus(index)">
                                     <span :style="{color: `${dataSource.status === 0 ? '#ed4014': '#19be6b'}`}">
                                         {{dataSource.status === 0 ? '禁用': '启用'}}
                                     </span>
@@ -80,9 +81,9 @@
                             </div>
                             <Divider type="vertical" style="height: 100%"/>
                             <div style="height: 100%; display: flex; justify-content: center; align-items: center">
-                                <a>
-                                    <span :style="{color: `${dataSource.store === 0 ? '#19be6b': '#2d8cf0'}`}">
-                                        {{dataSource.store === 0 ? '平台': '本地'}}
+                                <a href="javascript:void(0)" @click="changePublicType(index)">
+                                    <span :style="{color: `${dataSource.publicType === 0 ? '#2d8cf0' : '#19be6b'}`}">
+                                        {{dataSource.publicType === 0 ? '私有': '公开'}}
                                     </span>
                                 </a>
                             </div>
@@ -105,6 +106,7 @@
 <script>
     import AddDataSource from "./datasource/AddDataSource";
     import ComponentTitle from "../../components/ComponentTitle";
+    import {errorMessage} from "../../util/message.util";
 
     export default {
         name: "CommonDataSource",
@@ -116,91 +118,117 @@
                 addDataSourceModal: false,
                 dataSourceModalText: '',
                 delConfirm: false,
-                dataSourceList: [
-                    {
-                        id: 1,
-                        name: '数据源名称',
-                        type: 'mysql',
-                        status: 1,
-                        store: 0,
-                        updated: '2020-05-20 00:00:00',
-                    },
-                    {
-                        id: 2,
-                        name: '数据源名称',
-                        type: 'mysql',
-                        status: 0,
-                        store: 0,
-                        updated: '2020-05-20 00:00:00',
-                    },
-                    {
-                        id: 3,
-                        name: '数据源名称',
-                        type: 'mysql',
-                        status: 0,
-                        store: 1,
-                        updated: '2020-05-20 00:00:00',
-                    },
-                    {
-                        id: 4,
-                        name: '数据源名称',
-                        type: 'mysql',
-                        status: 0,
-                        store: 0,
-                        updated: '2020-05-20 00:00:00',
-                    },
-                    {
-                        id: 5,
-                        name: '数据源名称',
-                        type: 'mysql',
-                        status: 0,
-                        store: 0,
-                        updated: '2020-05-20 00:00:00',
-                    },
-                    {
-                        id: 6,
-                        name: '数据源名称',
-                        type: 'mysql',
-                        status: 0,
-                        store: '本地',
-                        updated: '2020-05-20 00:00:00',
-                    },
-                    {
-                        id: 7,
-                        name: '数据源名称',
-                        type: 'mysql',
-                        status: 0,
-                        store: 1,
-                        updated: '2020-05-20 00:00:00',
-                    },
-                    {
-                        id: 8,
-                        name: '数据源名称',
-                        type: 'mysql',
-                        status: 0,
-                        store: 0,
-                        updated: '2020-05-20 00:00:00',
-                    }
-                ]
+                delConfirmIndex: -1,
+                addDataSourceType: 'add',
+                dataSourceList: [],
+                formItem: {}
             }
         },
         methods: {
+            datasourceType(dataSource) {
+                return dataSource.type >= 0 && dataSource.type <= 11 ? 'SQL' : '文件'
+            },
             addDataSource() {
+                this.formItem = {
+                    name: '',
+                    type: 0,
+                    storeType: 0,
+                    publicType: 1,
+                    url: '',
+                    status: 0,
+                    host: '',
+                    port: 80,
+                    username: '',
+                    password: '',
+                    dbName: '',
+                    description: ''
+                };
                 this.addDataSourceModal = true;
+                this.addDataSourceType = 'add';
                 this.dataSourceModalText = '新增数据源';
             },
             updateDataSource(index) {
                 console.log(index);
+                this.formItem = this.dataSourceList[index];
                 this.addDataSourceModal = true;
+                this.addDataSourceType = 'update';
                 this.dataSourceModalText = '更新数据源';
             },
             removeDataSource(index) {
                 console.log(index);
+                this.delConfirmIndex = index;
                 this.delConfirm = true;
             },
             deleteDataSource() {
+                // 显示加载提示信息
+                let userId = this.$store.state.user.id;
+                let dataSource = this.dataSourceList[this.delConfirmIndex];
 
+                this.axios.delete(`/datasource-server/delete/${userId}/${dataSource.id}`).then(({data}) => {
+                    console.log(data)
+                    this.loadDataSourceList()
+                    this.delConfirm = false;
+                }).catch(error => {
+                    console.log(error)
+                    this.delConfirm = false;
+                    errorMessage(error, this);
+                });
+            },
+            loadDataSourceList() {
+                // 显示加载提示信息
+                this.spinShow = true;
+                // 加载模型列表数据
+                this.axios.post('/datasource-server/list', {
+                    userId: this.$store.state.user.id,
+                    name: this.searchName,
+                    paged: false
+                }).then(({data}) => {
+                    this.dataSourceList = data.data.data;
+                    this.spinShow = false;
+                }).catch(error => {
+                    console.log(error)
+                    this.spinShow = false;
+                    errorMessage(error, this);
+                });
+            },
+            changeStatus(index) {
+                // 显示加载提示信息
+                let userId = this.$store.state.user.id;
+                let dataSource = this.dataSourceList[index];
+                let method = dataSource.status === 0 ? 'disable' : 'enable';
+
+                this.axios.patch(`/datasource-server/${method}/${userId}/${dataSource.id}`).then(({data}) => {
+                    console.log(data)
+                    this.loadDataSourceList()
+                }).catch(error => {
+                    console.log(error)
+                    errorMessage(error, this);
+                });
+
+            },
+            changePublicType(index) {
+                let userId = this.$store.state.user.id;
+                let dataSource = this.dataSourceList[index];
+
+                this.axios.patch(`/datasource-server/public/${userId}/${dataSource.id}`).then(({data}) => {
+                    console.log(data)
+                    this.loadDataSourceList()
+                }).catch(error => {
+                    console.log(error)
+                    errorMessage(error, this);
+                });
+            },
+            editDataSourceCompleteTask() {
+                this.addDataSourceModal = false
+                this.loadDataSourceList()
+            },
+            searchDataSource(value) {
+                this.searchName = value
+                this.loadDataSourceList()
             }
+        },
+        mounted() {
+            this.loadDataSourceList();
         }
     }
 </script>

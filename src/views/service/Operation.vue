@@ -9,6 +9,9 @@
             <Drawer title="编辑运行服务" v-model="updateRunTask" width="720" :mask-closable="false" :styles="editRunStyle">
                 <OperationForm edit-type="update"></OperationForm>
             </Drawer>
+            <Drawer title="服务任务执行" v-model="executeTask" width="720" :mask-closable="false">
+                <ExecuteOperationTask></ExecuteOperationTask>
+            </Drawer>
             <Drawer title="服务运行详情" v-model="runInformation" width="720" :mask-closable="false">
 
             </Drawer>
@@ -77,9 +80,7 @@
                             <div style="width: 138px; align-content: center">{{item.updated}}</div>
                         </Col>
                         <Col>
-                            <a style="margin: 0 3px; color: #2d8cf0" @click="switchRun(index)">
-                                {{item.status !== 0 ? '运行' : '停止'}}
-                            </a>
+                            <a style="margin: 0 3px; color: #2d8cf0" @click="switchRun(index)">运行</a>
                             |
                             <a style="margin: 0 3px; color: #19be6b" @click="showRunDetail(index)">详情</a>
                             |
@@ -105,14 +106,16 @@
     import ComponentTitle from "../../components/ComponentTitle";
     import EditOperation from "./Operation/EditOperation";
     import OperationForm from "./Operation/OperationForm";
+    import ExecuteOperationTask from "./Operation/ExecuteOperationTask";
 
     export default {
         name: "Operation",
-        components: {OperationForm, EditOperation, ComponentTitle},
+        components: {ExecuteOperationTask, OperationForm, EditOperation, ComponentTitle},
         data() {
             return {
                 addRunTask: false,
                 updateRunTask: false,
+                executeTask: false,
                 runInformation: false,
                 delConfirm: false,
                 runFormItem: {
@@ -204,6 +207,7 @@
             },
             switchRun(index) {
                 console.log(index)
+                this.executeTask = true;
             },
             showRunDetail(index) {
                 console.log(index);

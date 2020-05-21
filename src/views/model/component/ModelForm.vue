@@ -3,7 +3,13 @@
         <FormItem label="模型名称">
             <Input v-model="formItem.name" placeholder="请输入模型名称"></Input>
         </FormItem>
-        <FormItem label="类型">
+        <FormItem label="模型类型">
+            <RadioGroup v-model="formItem.type">
+                <Radio :label="0">分析</Radio>
+                <Radio :label="1">学习</Radio>
+            </RadioGroup>
+        </FormItem>
+        <FormItem label="公开类型">
             <RadioGroup v-model="formItem.publicType">
                 <Radio :label="0">公开</Radio>
                 <Radio :label="1">私有</Radio>

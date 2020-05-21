@@ -203,10 +203,9 @@
 </template>
 
 <script>
-    import Template from "../extension/Template";
+
     export default {
         name: "Workbench",
-        components: {Template},
         data() {
             return {
                 data: [

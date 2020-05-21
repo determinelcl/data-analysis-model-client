@@ -1,34 +1,31 @@
 <template>
     <div>
-        <h3>沿海城市气象数据分析组件测试计划</h3>
+        <h3>沿海城市气象数据分析运行时服务</h3>
         <Row type="flex" :gutter="30" style="margin-top: 10px">
             <Col>
-                状态：测试进行中
+                状态：任务执行中
             </Col>
             <Col>
-                触发时间：2020-05-15 09:30:00
+                触发时间：2020-05-18 10:25:36
             </Col>
             <Col>
-                触发方式：自动
-            </Col>
-            <Col>
-                已运行时长： 00:01:31
+                已运行时长： 00:01:35
             </Col>
         </Row>
         <br/>
-        <Button type="primary" @click="startTest()" disabled>测试进行中</Button>
+        <Button type="primary" @click="startTest()" disabled>任务进行中</Button>
         <div style="margin: 16px 0; height: auto">
-            <Progress :percent="90" :stroke-color="['#108ee9', '#87d068']" status="active"/>
+            <Progress :percent="92" :stroke-color="['#108ee9', '#87d068']" status="active"/>
             <Scroll height="500" class="test-task-output">
                 <div style="padding: 3px 15px; height: 100%; width: 100%">
                     <div style="height: 30px; display: flex; align-items: center">
-                        2020-05-16 09:30:00 测试计划开始
+                        2020-05-18 10:25:36 数据分析任务开始
                     </div>
                     <div style="height: 30px; display: flex; align-items: center">
-                        2020-05-16 09:30:20 数据预处理完成
+                        2020-05-18 10:25:52 数据预处理完成
                     </div>
                     <div style="align-items: center">
-                        <div style="height: 30px; display: flex; align-items: center">2020-05-16 09:30:22 待分析矩阵</div>
+                        <div style="height: 30px; display: flex; align-items: center">2020-05-18 10:25:55 待分析矩阵</div>
                         <div>
                             <div>[2020-05-15  24.4(17:30) 94.0(00:50)  (NE)(27%)  16.1(12:20) 1013.9(23:50) 23.6(20:15) 0.0(23:55)]</div>
                             <div>[2020-05-15  12.2(06:20) 39.0(17:20)   (E)(27%)   0.0(00:05) 1008.7(03:40) 21.9(05:25) 0.0(24h)]</div>
@@ -48,7 +45,7 @@
                     </div>
                     <div style="align-items: center">
                         <div style="height: 30px; display: flex; align-items: center">
-                            2020-05-15 09:31:01 距离海较近的城市与相对距离海较远的城市的最高气温比对
+                            2020-05-18 10:26:52 距离海较近的城市与相对距离海较远的城市的最高气温比对
                         </div>
                         <div>
                             <Chart ref="weatherChartRef" chart-id="weather" :option="weatherOption" :width="650" :height="350">
@@ -65,7 +62,6 @@
                 </Chart>
             </div>
         </div>
-
     </div>
 </template>
 
@@ -73,7 +69,7 @@
     import Chart from "../../../components/Chart";
 
     export default {
-        name: "ExecuteTestTask",
+        name: "ExecuteOperationTask",
         components: {Chart},
         data() {
             return {
