@@ -112,7 +112,9 @@
                 })
             },
             handleSubmit() {
-                this.axios.put(`/model-server/update`, this.formItem).then(({data}) => {
+                let item = deepClone(this.formItem);
+                item['userId'] = this.$store.state.user.id
+                this.axios.put(`/model-server/update`, item).then(({data}) => {
                     console.log(data);
                     this.$emit('addSuccess')
                 }).catch(error => {

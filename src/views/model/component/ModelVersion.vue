@@ -26,11 +26,12 @@
             </i-switch>
         </FormItem>
         <FormItem label="模型">
-            <Upload multiple type="drag" action="upload/model/">
-                <div style="padding: 20px 0">
-                    <Icon type="ios-cloud-upload" size="30" style="color: #3399ff"></Icon>
-                    <p>点击或拖拽上传模型</p>
-                </div>
+            <Upload action="http://localhost:9000/filesystem-server/upload"
+                    :format="acceptPy" show-upload-list
+                    :headers="tokenParam"
+                    :on-success="handleModelSuccess"
+                    :on-error="handleModelError">
+                <Button icon="ios-cloud-upload-outline">上传数据分析模型文件</Button>
             </Upload>
         </FormItem>
         <FormItem label="I/O协议">
@@ -55,10 +56,14 @@
             </RadioGroup>
         </FormItem>
         <FormItem label="版权图片">
-            <Upload multiple type="drag" action="upload/model/">
+            <Upload multiple type="drag" action="http://localhost:9000/filesystem-server/upload"
+                    :format="acceptImage" show-upload-list
+                    :headers="tokenParam"
+                    :on-success="handleImgSuccess"
+                    :on-error="handleImgError">
                 <div style="padding: 20px 0">
                     <Icon type="ios-cloud-upload" size="30" style="color: #3399ff"></Icon>
-                    <p>点击或拖拽上传图片</p>
+                    <p>点击或拖拽上传版权图片</p>
                 </div>
             </Upload>
         </FormItem>
@@ -77,17 +82,33 @@
 <script>
     import {deepClone} from "../../../util/object.util";
     import {errorMessage} from "../../../util/message.util";
+    import {TOKEN_INFORMATION} from "../../../constant/system";
 
     export default {
         name: "ModelVersion",
         props: ['formItem', 'operation'],
         data() {
             return {
+                modelUrl: '',
+                modelSize: 0,
+                imageUrl: '',
+                imageSize: 0,
+                acceptPy: ['py'],
+                acceptImage: ['png', 'jpg', 'jpeg'],
                 originForm: null,
+                token: TOKEN_INFORMATION,
                 protocolList: []
             }
         },
         computed: {
+            tokenParam: {
+                get() {
+                    let tokenInformation = localStorage.getItem(TOKEN_INFORMATION)
+                    if (tokenInformation && JSON.parse(tokenInformation).access_token)
+                        return {'Authorization': `Bearer ${JSON.parse(tokenInformation).access_token}`}
+                    return {}
+                }
+            },
             versionStatus: {
                 get() {
                     return this.formItem.status === 0
@@ -112,13 +133,14 @@
             updateVersion() {
                 let version = deepClone(this.formItem);
                 // 上传的模型的url
-                version['modelUrl'] = '';
+                version['modelUrl'] = this.modelUrl;
                 // 模型文件的大小
-                version['modelSize'] = '';
+                version['modelSize'] = this.modelSize;
                 // 模型的版权图片的url
-                version['copyrightImg'] = '';
+                version['copyrightImg'] = this.imageUrl;
                 // 模型版权图片的大小
-                version['copyrightImgSize'] = '';
+                version['copyrightImgSize'] = this.imageSize;
+                version['userId'] = this.$store.state.user.id;
 
                 if (!version.protocolId)
                     version.protocolId = this.formItem.protocol.id;
@@ -134,13 +156,14 @@
             addVersion() {
                 let version = deepClone(this.formItem);
                 // 上传的模型的url
-                version['modelUrl'] = '';
+                version['modelUrl'] = this.modelUrl;
                 // 模型文件的大小
-                version['modelSize'] = '';
+                version['modelSize'] = this.modelSize;
                 // 模型的版权图片的url
-                version['copyrightImg'] = '';
+                version['copyrightImg'] = this.imageUrl;
                 // 模型版权图片的大小
-                version['copyrightImgSize'] = '';
+                version['copyrightImgSize'] = this.imageSize;
+                version['userId'] = this.$store.state.user.id;
 
                 this.axios.post(`/model-server/version/add`, version).then(({data}) => {
                     console.log(data)
@@ -161,6 +184,30 @@
                     console.log(error)
                     errorMessage(error, this);
                 });
+            },
+            handleModelSuccess(response, file, fileList) {
+                this.modelUrl = response.data
+                this.modelSize = file.size
+                console.log(response)
+                console.log(file)
+                console.log(fileList)
+            },
+            handleModelError(error, file, fileList) {
+                errorMessage(error, this)
+                console.log(file)
+                console.log(fileList)
+            },
+            handleImgSuccess(response, file, fileList) {
+                this.imageUrl = response.data
+                this.imageSize = file.size
+                console.log(response)
+                console.log(file)
+                console.log(fileList)
+            },
+            handleImgError(error, file, fileList) {
+                errorMessage(error, this)
+                console.log(file)
+                console.log(fileList)
             }
         },
         created() {
