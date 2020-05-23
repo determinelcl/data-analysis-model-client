@@ -5,7 +5,7 @@
         <div class="demo-drawer-profile">
             <Row :style="{height: '38px'}" type="flex" align="middle">
                 <Col span="12">
-                    名称: {{blogInfo.name}}
+                    名称: {{blogInfo.title}}
                 </Col>
                 <Col span="12">
                     分组:
@@ -16,12 +16,18 @@
             </Row>
             <Row :style="{height: '38px'}" type="flex" align="middle">
                 <Col span="12">
-                    状态:
-                    <Tag type="dot" :color="blogInfo.status === 0 ? 'success' : 'warning'">
-                        {{blogInfo.status === 0 ? '已发布' : '未发布'}}
-                    </Tag>
+
+                    类型: {{blogInfo.type === 0 ? '已发布' : '已保存'}}
                 </Col>
                 <Col span="12">
+                    状态:
+                    <Tag type="dot" :color="blogInfo.status === 0 ? '#19be6b': blogInfo.status === 1 ? '#ff9900': '#ed4014'">
+                        {{blogInfo.status === 0 ? '审核通过': blogInfo.status === 1 ? '未审核' : '审核不通过'}}
+                    </Tag>
+                </Col>
+            </Row>
+            <Row :style="{height: '38px'}" type="flex" align="middle">
+                <Col span="22">
                     标签:
                     <Tag v-for="tag in blogInfo.tagList" :key="tag.id" color="orange">
                         {{tag.name}}
@@ -33,20 +39,15 @@
                     摘要: {{blogInfo.summary}}
                 </Col>
             </Row>
-            <Row :style="{height: '38px'}" type="flex" align="middle">
-                <Col span="24">
-                    简介: {{blogInfo.description}}
-                </Col>
-            </Row>
         </div>
         <Divider/>
         <p :style="textTheme">正文</p>
-        <div class="demo-drawer-profile">
+        <div class="demo-drawer-profile" v-html="blogInfo.html">
         </div>
         <Divider/>
         <p :style="textTheme">评论信息</p>
         <div class="demo-drawer-profile">
-            <ActiveInfo></ActiveInfo>
+            <ActiveInfo ref="activeInfoRef"></ActiveInfo>
         </div>
         <div style="height: 100px"></div>
 
@@ -59,21 +60,9 @@
     export default {
         name: "BlogInformation",
         components: {ActiveInfo},
+        props: ['blogInfo'],
         data() {
             return {
-                blogInfo: {
-                    name: '计算机视觉',
-                    status: 0,
-                    groupId: 0,
-                    group: {name: '深度学习'},
-                    tagId: 0,
-                    tagList: [
-                        {id: 1, name: '推荐系统'},
-                        {id: 2, name: '分类算法'}
-                    ],
-                    summary: '这是使用神经网络实现实现的性能最优的视觉算法模型',
-                    description: '这是使用神经网络实现实现的性能最优的视觉算法模型'
-                },
                 textTheme: {
                     fontSize: '16px',
                     color: 'rgba(0,0,0,0.85)',
@@ -82,6 +71,13 @@
                     marginBottom: '16px'
                 }
             }
+        },
+        mounted() {
+            let _this = this
+
+            this.$on('loadBlogInfo', (blog) => {
+                _this.$refs.activeInfoRef.$emit("loadActiveInfo", blog, 1);
+            });
         }
     }
 </script>

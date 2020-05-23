@@ -20,6 +20,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
     state: {
         rootRouter: '/home',
+        fileRoot: 'http://192.168.100.2:80',
         style: {
             contentStyle: {
                 margin: '16px 24px',

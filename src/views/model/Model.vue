@@ -193,6 +193,7 @@
                 this.loadTableData()
             },
             searchModel() {
+                this.page.current = 1
                 this.loadTableData()
             },
             resetSearchModel() {
