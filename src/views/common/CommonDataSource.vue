@@ -34,6 +34,7 @@
             </Row>
         </div>
         <div :style="{margin: '0 24px 16px 24px', padding: '0 0 16px 0', overflow: 'auto', position: 'relative'}">
+            <Spin fix v-if="spinShow"><LoadingIcon></LoadingIcon></Spin>
             <Row :gutter="20">
                 <Col style="margin-bottom: 16px" span="6" v-for="(dataSource, index) in dataSourceList"
                      :key="dataSource.id" :value="index">
@@ -107,14 +108,16 @@
     import AddDataSource from "./datasource/AddDataSource";
     import ComponentTitle from "../../components/ComponentTitle";
     import {errorMessage} from "../../util/message.util";
+    import LoadingIcon from "../../components/LoadingIcon";
 
     export default {
         name: "CommonDataSource",
-        components: {AddDataSource, ComponentTitle},
+        components: {LoadingIcon, AddDataSource, ComponentTitle},
         props: ['objectType'],
         data() {
             return {
                 searchName: '',
+                spinShow: false,
                 addDataSourceModal: false,
                 dataSourceModalText: '',
                 delConfirm: false,

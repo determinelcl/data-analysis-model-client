@@ -5,16 +5,17 @@
         </ComponentTitle>
 
         <div :style="this.$store.state.style.contentStyle">
-
+            <Spin fix v-if="spinShow"><LoadingIcon></LoadingIcon></Spin>
             <Drawer :title="editTestTaskText" v-model="editTestTask" width="720"
                     :mask-closable="false" :styles="editTestStyle">
-                <EditTest :object-type="objectType"></EditTest>
+                <EditTest :object-type="objectType.type" :edit-type="editType" :form-item="formItem"
+                          @completeTask="editTestPlanCompleteTask"></EditTest>
             </Drawer>
             <Drawer title="执行测试计划" v-model="execTestTask" width="720" :mask-closable="false">
                 <ExecuteTestTask></ExecuteTestTask>
             </Drawer>
             <Drawer v-model="testReport" width="720" :closable="false">
-                <TestReport></TestReport>
+                <TestReport ref="testReportRef" :report-info="reportInfo"></TestReport>
             </Drawer>
             <Modal v-model="delConfirm" width="360">
                 <p slot="header" style="color:#f60;text-align:center">
@@ -42,12 +43,13 @@
                             <Select v-model="searchForm.status" filterable allow-create clearable style="width: 130px">
                                 <Option :value="0">已完成</Option>
                                 <Option :value="1">未开始</Option>
+                                <Option :value="2">进行中</Option>
                             </Select>
                         </FormItem>
                     </Col>
                     <Col span="5">
                         <FormItem label="触发类型：" prop="version" label-position="left">
-                            <Select v-model="searchForm.trigger" filterable allow-create clearable style="width: 100px">
+                            <Select v-model="searchForm.triggerType" filterable allow-create clearable style="width: 100px">
                                 <Option :value="0">自动</Option>
                                 <Option :value="1">手动</Option>
                             </Select>
@@ -73,25 +75,26 @@
                 </Col>
             </Row>
             <List>
-                <ListItem v-for="(item, index) in data" :key="item.id">
+                <ListItem v-for="(item, index) in tableData" :key="item.id">
                     <ListItemMeta :title="item.name" :description="item.description"/>
                     <Row type="flex" justify="center" align="middle" :gutter="38"
                          :style="{color: 'rgba(0,0,0,.45)', height: '100%'}">
                         <Col>
                             <div class="list-description">状态</div>
-                            <div :style="{width: '50px', alignContent: 'center', color: `${item.status === 0 ? '#19be6b': '#ff9900'}` }">
-                                {{item.status === 0 ? '已完成': '未开始'}}
+                            <div :style="{width: '50px', alignContent: 'center', color: `${item.status === 0 ? '#19be6b': item.status === 1 ? '#ff9900' : item.status === 2 ? '#2d8cf0' : '#ed4014'}` }">
+                                {{item.status === 0 ? '成功': item.status === 1 ? '未开始' : item.status === 2 ? '#进行中' : '#失败'}}
                             </div>
                         </Col>
                         <Col>
                             <div class="list-description">触发类型</div>
-                            <div :style="{width: '50px', alignContent: 'center', color: `${item.trigger === 0 ? '#19be6b': '#ff9900'}` }">
-                                {{item.trigger === 0 ? '自动': '手动'}}
+                            <div :style="{width: '50px', alignContent: 'center', color: `${item.triggerType === 0 ? '#19be6b': '#ff9900'}` }">
+                                {{item.triggerType === 0 ? '自动': '手动'}}
                             </div>
                         </Col>
                         <Col>
                             <div style="width: 138px; align-content: center">测试计划日期</div>
-                            <div style="width: 138px; align-content: center">{{item.startTime}}</div>
+                            <div style="width: 138px; align-content: center" v-if="item.triggerType === 0">{{item.triggerTime}}</div>
+                            <div style="width: 138px; align-content: center" v-if="item.triggerType === 1">手动触发测试计划</div>
                         </Col>
                         <Col>
                             <div style="width: 138px; align-content: center">创建日期</div>
@@ -125,32 +128,26 @@
     import ExecuteTestTask from "./test/ExecuteTestTask";
     import EditTest from "./test/EditTest";
     import ComponentTitle from "../../components/ComponentTitle";
+    import {errorMessage} from "../../util/message.util";
+    import {deepClone} from "../../util/object.util";
+    import LoadingIcon from "../../components/LoadingIcon";
 
     export default {
         name: "CommonTest",
-        components: {TestReport, ExecuteTestTask, EditTest, ComponentTitle},
+        components: {LoadingIcon, TestReport, ExecuteTestTask, EditTest, ComponentTitle},
         props: ['objectType'],
         data() {
             return {
+                spinShow: false,
                 editTestTask: false,
                 editTestTaskText: '',
+                editType: 'add',
                 execTestTask: false,
                 testReport: false,
                 delConfirm: false,
-                testFormItem: {
-                    name: '计算机视觉',
-                    public: 0,
-                    status: true,
-                    groupId: 0,
-                    group: {name: '深度学习'},
-                    tagId: 0,
-                    tagList: [
-                        {id: 1, name: '推荐系统'},
-                        {id: 2, name: '分类算法'}
-                    ],
-                    git: 'https://github.com/alibaba/Sentinel',
-                    description: '这是使用神经网络实现实现的性能最优的视觉算法模型'
-                },
+                delConfirmIndex: -1,
+                formItem: {},
+                reportInfo: {},
                 editTestStyle: {
                     height: 'calc(100% - 55px)',
                     overflow: 'auto',
@@ -160,7 +157,7 @@
                 searchForm: {
                     name: null,
                     status: null,
-                    trigger: null
+                    triggerType: null
                 },
                 page: {
                     total: 100,
@@ -188,40 +185,17 @@
                     {title: '发布者', key: 'publisher'},
                     {title: '更新日期', key: 'updated'}
                 ],
-                data: [
-                    {
-                        id: 1,
-                        name: '图像识别测试',
-                        description: '这是一个图像识别的组件',
-                        status: 0,
-                        trigger: 0,
-                        startTime: '2020-04-30 00:00:00',
-                        created: '2020-04-30 00:00:00'
-                    },
-                    {
-                        id: 2,
-                        name: '支持向量机测试',
-                        description: '这是一个分类器',
-                        status: 0,
-                        trigger: 0,
-                        startTime: '2020-04-30 00:00:00',
-                        created: '2020-04-30 00:00:00',
-                    },
-                    {
-                        id: 3,
-                        name: '文字识别测试',
-                        description: '这是一个神经网络模型',
-                        status: 1,
-                        trigger: 1,
-                        startTime: '2020-04-30 00:00:00',
-                        created: '2020-04-30 00:00:00'
-                    }
-                ]
+                tableData: []
             }
         },
         methods: {
+            editTestPlanCompleteTask() {
+                this.editTestTask = false
+                this.searchTest()
+            },
             searchTest() {
-
+                this.page.current = 1;
+                this.loadTableData()
             },
             resetSearchTest() {
                 Object.keys(this.searchForm).forEach(prop => this.searchForm[prop] = null)
@@ -231,37 +205,106 @@
                 this.execTestTask = true;
             },
             showTestDetail(index) {
-                console.log(index);
+                let testPlan = deepClone(this.tableData[index]);
+                console.log(testPlan)
+                this.reportInfo = testPlan
+                this.$refs['testReportRef'].$emit('loadData', testPlan.id)
                 this.testReport = true;
             },
             addTest() {
+                this.formItem = {
+                    name: '',
+                    triggerType: 0,
+                    triggerTime: null,
+                    targetId: null,
+                    model: [],
+                    datasourceId: null,
+                    protocolFormatIdList: [],
+                    reportFlag: 0,
+                    description: ''
+                }
+
                 this.editTestTaskText = '添加测试计划';
+                this.editType = 'add';
                 this.editTestTask = true;
             },
             updateTest(index) {
-                console.log(index);
+                let testPlan = deepClone(this.tableData[index]);
+                console.log(testPlan)
+
+                // 变换对象的参数
+                testPlan['model'] = [testPlan.version.modelId, testPlan.version.id]
+                let protocolFormatIdList = []
+                testPlan.visualDataList.forEach(visualData => protocolFormatIdList.push(visualData.protocolFormatId))
+                testPlan['protocolFormatIdList'] = protocolFormatIdList
+
+                this.formItem = testPlan
+
                 this.editTestTaskText = '更新测试计划';
+                this.editType = 'update';
                 this.editTestTask = true;
             },
             removeTest(index) {
-                console.log(index);
-                this.delConfirm = true;
+                this.delConfirmIndex = index
+                this.delConfirm = true
             },
             deleteTest() {
+                let testPlan = deepClone(this.tableData[this.delConfirmIndex]);
 
+                // 显示加载提示信息
+                let userId = this.$store.state.user.id
+                this.axios.delete(`/test-server/delete/${userId}/${testPlan.id}`).then(({data}) => {
+                    console.log(data)
+                    // 关闭加载提示信息
+                    this.delConfirm = false
+                    this.loadTableData()
+                }).catch(error => {
+                    console.log(error)
+                    // 关闭加载提示信息
+                    this.delConfirm = false
+                    errorMessage(error, this)
+                });
             },
             // 切换页面
             changePage(page) {
                 this.page.current = page;
-                // this.loadTableData();
+                this.loadTableData();
             },
             changePageSize(pageSize) {
                 // 如果每页显示的数据发生改变，则还是从第一页开始查询
                 this.page.size = pageSize;
                 this.page.current = 1;
 
-                // this.loadTableData()
+                this.loadTableData()
             },
+            // 获取测试计划数据
+            loadTableData() {
+                let condition = deepClone(this.searchForm)
+                Object.assign(condition, this.page)
+                condition['userId'] = this.$store.state.user.id
+
+                // type === 0表示查询数据分析模型列表
+                if (this.objectType.type === 'model')
+                    condition['type'] = 0
+                else condition['type'] = 1
+
+                // 显示加载提示信息
+                this.spinShow = true;
+                this.axios.post('/test-server/list', condition).then(({data}) => {
+                    // 关闭加载提示信息
+                    this.spinShow = false;
+                    this.tableData = data.data.data;
+                    this.page.total = data.data.total;
+                }).catch(error => {
+                    console.log(error);
+                    // 关闭加载提示信息
+                    this.spinShow = false;
+                    errorMessage(error, this);
+                });
+            }
+        },
+        mounted() {
+            this.loadTableData()
         }
     }
 </script>
