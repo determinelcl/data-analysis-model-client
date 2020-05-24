@@ -46,7 +46,12 @@
         methods: {
             selectedTab(tabName) {
                 console.log(tabName);
-                this.$router.push({path: `${this.currentRouter}/${this.itemList[tabName].name}`});
+                this.$router.push({
+                    path: `${this.currentRouter}/${this.itemList[tabName].name}`,
+                    query: {
+                        name: this.searchName
+                    }
+                });
             }
         },
         mounted() {
@@ -80,6 +85,7 @@
 
             this.$router.$addRoutes([home]);
             this.currentRouter = this.$route.path;
+            this.$router.push({path: `${this.currentRouter}/${this.itemList[0].name}`});
         }
     }
 </script>

@@ -255,6 +255,8 @@
             loadTableData() {
                 let condition = deepClone(this.searchForm);
                 Object.assign(condition, this.pageModel)
+                condition['userId'] = this.$store.state.user.id
+
                 // 显示加载提示信息
                 this.spinShow = true;
                 // 加载模型列表数据
