@@ -190,8 +190,8 @@
             showBlogDetail(index) {
                 this.blogItem = deepClone(this.tableData[index]);
 
-                this.$refs.blogInfoRef.$emit('loadBlogInfo', this.blogItem)
                 this.blogInfo = true
+                this.$refs.blogInfoRef.$emit('loadBlogInfo', this.blogItem)
             },
             addBlog() {
                 this.formItem = {

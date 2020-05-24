@@ -12,6 +12,11 @@
                 <Button type="error" size="large" long @click="deleteProtocolBatch()">删除</Button>
             </div>
         </Modal>
+        <Modal title="编辑协议信息" v-model="editProcessProtocolModal" scrollable :mask-closable="false" width="650px"
+               :footer-hide="true">
+            <OutputProtocolForm :form-item="outputFormItem" operation="checked"
+                                @completeTask="editProcessProtocolCompleteTask"></OutputProtocolForm>
+        </Modal>
 
         <Row type="flex" justify="start" :style="{padding: 0, margin: '0 0 20px 0'}">
             <Col span="5">
@@ -26,7 +31,11 @@
                 </Button>
             </Col>
         </Row>
-        <Table :columns="protocolColumn" :data="protocolList" :show-header="false"></Table>
+        <Table ref="protocolProcessRef" :columns="protocolColumn" :data="formItem" :show-header="false">
+            <template slot-scope="{ row, index }" slot="action">
+                <a style="margin: 0 3px; color:#ff9900;" @click="updateProcessProtocol(index)">编辑</a>
+            </template>
+        </Table>
     </div>
 </template>
 
@@ -36,23 +45,15 @@
 
     export default {
         name: "ProcessProtocolForm",
+        components: {OutputProtocolForm},
+        props: ['formItem', "delItem"],
         data() {
             return {
                 delBatchConfirm: false,
+                editProcessProtocolModal: false,
+                outputFormItem: {},
                 protocolColumn: [
                     {type: 'selection', width: 60, align: 'center'},
-                    {
-                        type: 'expand',
-                        width: 20,
-                        render: (h, params) => {
-                            return h(OutputProtocolForm, {
-                                props: {
-                                    formItem: params.row,
-                                    operation: 'update'
-                                }
-                            })
-                        }
-                    },
                     {
                         title: '输出名称',
                         key: 'name',
@@ -61,11 +62,11 @@
                     },
                     {
                         title: '输出类型',
-                        key: 'outputType',
+                        key: 'ioType',
                         width: 100,
                         render: (h, params) => {
                             let outputType = ['图表', '文本', '图片', '矩阵', '语音', '流数据']
-                            return h('div', outputType[params.row.outputType])
+                            return h('div', outputType[params.row.ioType])
                         }
                     },
                     {
@@ -75,49 +76,59 @@
                     },
                     {
                         title: '描述',
-                        key: 'description',
+                        key: 'ioDesc',
                         width: 180,
                         tooltip: true
-                    }
-                ],
-                protocolList: [
-                    {
-                        name: '学习率曲线',
-                        outputType: 0,
-                        format: {},
-                        description: '这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明'
                     },
-                    {
-                        name: '查准率',
-                        outputType: 1,
-                        format: {},
-                        description: '这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明'
-                    },
-                    {
-                        name: '查全率',
-                        outputType: 2,
-                        format: {},
-                        description: '这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明这是测试说明'
-                    }
+                    {title: '操作', slot: 'action', width: 100, align: 'center'}
                 ]
             }
         },
         methods: {
+            editProcessProtocolCompleteTask(protocol) {
+                this.editProcessProtocolModal = false
+                this.formItem.push(protocol)
+            },
             addProtocol() {
-                this.protocolList.forEach(protocol => protocol['_expanded'] = false)
+                this.editProcessProtocolModal = true
 
-                let protocol = {
-                    outputType: 0,
-                    description: null,
-                    format: {},
+                this.outputFormItem = {
+                    name: '',
+                    ioType: null,
+                    ioDesc: '',
+                    fileSuffix: '',
+                    format: '',
+                    newObj: 0
                 }
-                this.protocolList.push(protocol);
+            },
+            updateProcessProtocol(index) {
+                this.editProcessProtocolModal = true
+                let item = this.formItem[index];
+                item.newObj = 1
+                this.outputFormItem = item
             },
             removeProtocolBatch() {
                 this.delBatchConfirm = true;
             },
             deleteProtocolBatch() {
+                let tableSelectionIdList = this.getTableSelection();
+                console.log(tableSelectionIdList);
+                if (tableSelectionIdList.length === 0) return;
 
+                // 从当前数组中移除
+                this.formItem = this.formItem.filter(item => !tableSelectionIdList.includes(item.name))
+
+                let filter = this.formItem.filter(item => tableSelectionIdList.includes(item.name));
+                if (filter) this.delItem.push(...filter)
+
+                this.delBatchConfirm = false
+            },
+            // 获取选中的表格中的数据的id
+            getTableSelection() {
+                let selection = this.$refs.protocolProcessRef.getSelection();
+                let selectIdList = [];
+                selection.forEach(item => selectIdList.push(item.name))
+                return selectIdList;
             },
         }
     }
