@@ -6,20 +6,6 @@
             <Spin fix v-if="spinShow">
                 <LoadingIcon></LoadingIcon>
             </Spin>
-            <Modal v-model="delConfirm" width="360">
-                <p slot="header" style="color:#f60;text-align:center">
-                    <Icon type="ios-information-circle"></Icon>
-                    <span>删除确认</span>
-                </p>
-                <div style="text-align:center">
-                    <p>是否删除此订单？</p>
-                </div>
-                <div slot="footer">
-                    <Button type="error" size="large" long
-                            :loading="modalLoading" @click="deleteOrder()">删除
-                    </Button>
-                </div>
-            </Modal>
 
             <Form ref="formInline" :model="searchForm">
                 <Row type="flex" justify="space-between" :style="{padding: '0 20px'}">
@@ -48,13 +34,9 @@
             </Form>
             <Table ref="orderTableRef" :data="tableData" :columns="tableColumns" stripe no-data-text="订单数据为空">
                 <template slot-scope="{ row, index }" slot="action">
-                    <Button type="primary" @click="exportOrder(index)" :style="{width: '108px'}">
-                        导出
+                    <Button type="success" @click="payOrder(index)" size="small" :disabled="row.payStatus === 0">
+                        {{row.payStatus === 0 ? '已支付' : '支付'}}
                     </Button>
-                    <Button type="success" @click="payOrder(index)" :style="{width: '108px'}">
-                        支付
-                    </Button>
-                    <Button type="error" size="small" @click="remove(index)">删除</Button>
                 </template>
             </Table>
 
@@ -72,7 +54,7 @@
 <script>
     import LoadingIcon from "../../components/LoadingIcon";
     import ComponentTitle from "../../components/ComponentTitle";
-    import {errorMessage} from "../../util/message.util";
+    import {errorMessage, renderPopTip} from "../../util/message.util";
 
     export default {
         name: "Order",
@@ -86,7 +68,7 @@
                 tableData: [],
                 searchForm: {
                     name: null,
-                    service: null
+                    serviceName: null
                 },
                 page: {
                     total: 100,
@@ -96,14 +78,64 @@
                 },
                 tableColumns: [
                     {type: 'selection', width: 60, align: 'center', fixed: 'left'},
-                    {title: '订单号', key: 'name', width: 180, resizable: true},
-                    {title: '订单金额', key: 'name', width: 180, resizable: true},
-                    {title: '订单类型', key: 'name', width: 180, resizable: true},
-                    {title: '订单方', key: 'name', width: 180, resizable: true},
-                    {title: '商品名称', key: 'name', width: 180, resizable: true},
+                    {title: '订单号', key: 'number', width: 180, resizable: true, tooltip: true},
+                    {title: '订单金额（：¥）', key: 'money', width: 180, resizable: true},
+                    {title: '订单类型', key: 'type', width: 180, resizable: true},
+                    {
+                        title: '订单方', key: 'account', width: 180, resizable: true,
+                        render: (h, params) => {
+                            let row = params.row;
+                            let content = ''
+                            if (row.account) content = row.account.username
+
+                            return renderPopTip(h, content);
+                        }
+                    },
+                    {
+                        title: '服务名称', key: 'runtimeService', width: 180, resizable: true,
+                        render: (h, params) => {
+                            let row = params.row;
+                            let content = ''
+                            if (row.runtimeService) content = row.runtimeService.name
+
+                            return renderPopTip(h, content);
+                        }
+                    },
+                    {
+                        title: '支付状态', key: 'payStatus', width: 180, resizable: true,
+                        render: (h, params) => {
+                            const row = params.row;
+                            const color = row.payStatus === 0 ? 'success' : 'warning';
+                            const text = row.payStatus === 0 ? '已支付' : '未支付';
+
+                            return h('Tag', {
+                                props: {
+                                    type: 'dot',
+                                    color: color
+                                }
+                            }, text);
+                        }
+                    },
+                    {
+                        title: '支付方式', key: 'payMethod', width: 180, resizable: true,
+                        render: (h, params) => {
+                            const row = params.row;
+                            if (row.payStatus === 1) return h('div', '未支付')
+
+                            const color = row.payMethod === 0 ? 'primary' : 'success';
+                            const text = row.payMethod === 0 ? '支付宝' : '微信';
+
+                            return h('Tag', {
+                                props: {
+                                    type: 'dot',
+                                    color: color
+                                }
+                            }, text);
+                        }
+                    },
+                    {title: '支付时间', key: 'payTime', width: 180, resizable: true},
                     {title: '创建日期', key: 'created', width: 180, resizable: true},
-                    {title: '商品描述', key: 'description', width: 180, resizable: true, tooltip: true},
-                    {title: '操作', slot: 'action', width: 150, align: 'center', fixed: 'right'}
+                    {title: '操作', slot: 'action', width: 80, align: 'center', fixed: 'right'}
                 ],
                 styles: {
                     height: 'calc(100% - 55px)',
@@ -121,36 +153,8 @@
             resetSearchOrder() {
                 Object.keys(this.searchForm).forEach(prop => this.searchForm[prop] = null)
             },
-            exportOrder(index) {
+            payOrder(index) {
                 console.log(index)
-            },
-            // 获取选中的表格中的数据的id
-            getTableSelection() {
-                let selection = this.$refs.orderTableRef.getSelection();
-                let selectIdList = [];
-                selection.forEach(item => selectIdList.push(item.id))
-                return selectIdList;
-            },
-            payOrder(index){
-                console.log(index)
-            },
-            remove(index) {
-                console.log(index);
-                this.deletedOrderIndex = index;
-                this.delConfirm = true;
-            },
-            deleteOrder() {
-                let order = this.tableData[this.deletedOrderIndex];
-                console.log(order);
-                this.axios.delete(`/order-server/del/${order.id}`).then(({data}) => {
-                    console.log(data);
-                    this.loadTableData();
-                    this.delConfirm = false;
-                }).catch(error => {
-                    this.delConfirm = false;
-                    console.log(error)
-                    errorMessage(error, this);
-                })
             },
             // 切换页面
             changePage(page) {
@@ -168,19 +172,22 @@
             loadTableData() {
                 let condition = this.searchForm;
                 Object.assign(condition, this.page)
-                // 显示加载提示信息
-                // this.spinShow = true;
-                // 加载订单列表数据
-                this.axios.post('', condition).then(({data}) => {
+                condition['payUserId'] = this.$store.state.user.id
+
+                this.spinShow = true;
+                this.axios.post('/payment-server/list', condition).then(({data}) => {
                     this.tableData = data.data.data;
                     this.page.total = data.data.total;
-                    // this.spinShow = false;
+                    this.spinShow = false;
                 }).catch(error => {
                     console.log(error)
-                    // this.spinShow = false;
+                    this.spinShow = false;
                     errorMessage(error, this);
                 });
             }
+        },
+        mounted() {
+            this.loadTableData()
         }
     }
 </script>
