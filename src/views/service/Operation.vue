@@ -3,17 +3,22 @@
         <ComponentTitle name="服务运行管理" description="服务运行管理：添加、删除、修改、查询服务运行信息"></ComponentTitle>
 
         <div :style="this.$store.state.style.contentStyle">
+            <Spin fix v-if="spinShow">
+                <LoadingIcon></LoadingIcon>
+            </Spin>
+
             <Drawer title="添加运行服务" v-model="addRunTask" width="720" :mask-closable="false" :styles="editRunStyle">
-                <EditOperation></EditOperation>
+                <EditOperation :form-item="addFormItem" @completeTask="editRuntimeServiceCompleteTask"></EditOperation>
             </Drawer>
             <Drawer title="编辑运行服务" v-model="updateRunTask" width="720" :mask-closable="false" :styles="editRunStyle">
-                <OperationForm edit-type="update"></OperationForm>
+                <OperationForm ref="updateRuntimeRef" :form-item="updateFormItem" edit-type="update"
+                               @completeTask="editRuntimeServiceCompleteTask"></OperationForm>
             </Drawer>
             <Drawer title="服务任务执行" v-model="executeTask" width="720" :mask-closable="false">
                 <ExecuteOperationTask></ExecuteOperationTask>
             </Drawer>
-            <Drawer title="服务运行详情" v-model="runInformation" width="720" :mask-closable="false">
-
+            <Drawer title="服务运行详情" v-model="runInformation" width="720">
+                <OperationInformation ref="runtimeInfoRef" :form-item="runtimeInfo"></OperationInformation>
             </Drawer>
             <Modal v-model="delConfirm" width="360">
                 <p slot="header" style="color:#f60;text-align:center">
@@ -53,31 +58,38 @@
                 </Col>
             </Row>
             <List>
-                <ListItem v-for="(item, index) in data" :key="item.id">
+                <ListItem v-for="(item, index) in tableData" :key="item.id">
                     <ListItemMeta :title="item.name" :description="item.description"/>
                     <Row type="flex" justify="center" align="middle" :gutter="38"
                          :style="{color: 'rgba(0,0,0,.45)', height: '100%'}">
                         <Col>
                             <div style="width: 80px; align-content: center">付费</div>
-                            <div :style="{width: '80px', alignContent: 'center', color: `${item.pay === 0 ? '#2d8cf0' : '#ed4014'}`}">
-                                {{item.pay === 0 ? '已支付' : '未支付'}}
+                            <div :style="{width: '80px', alignContent: 'center', color: `${item.serviceOrder.payStatus === 0 ? '#19be6b' : '#ff9900'}`}">
+                                {{item.serviceOrder.payStatus === 0 ? '已支付' : '未支付'}}
                             </div>
                         </Col>
                         <Col>
                             <div style="width: 80px; align-content: center">运行类型</div>
-                            <div :style="{width: '80px', alignContent: 'center', color: `${item.status === 0 ? '#2d8cf0' : '#19be6b'}`}">
+                            <div :style="{width: '80px', alignContent: 'center', color: `${item.type === 0 ? '#2d8cf0' : '#19be6b'}`}">
                                 {{item.type === 0 ? '数据分析' : '学习系统'}}
+                            </div>
+                        </Col>
+                        <Col>
+                            <div style="width: 80px; align-content: center">公开类型</div>
+                            <div :style="{width: '80px', alignContent: 'center', color: `${item.publicType === 0 ? '#19be6b' : '#2d8cf0'}`}">
+                                {{item.publicType === 0 ? '公开' : '私有'}}
                             </div>
                         </Col>
                         <Col>
                             <div class="list-description">运行状态</div>
                             <div :style="{width: '80px', alignContent: 'center', color: `${item.status === 0 ? '#2d8cf0' : item.status === 1 ? '#19be6b': item.status === 2 ? '#ff9900' : '#ed4014'}` }">
-                                {{item.status === 0 ? '正在运行': item.status === 1 ? '运行完成' : item.status === 2 ? '未运行' :  '出现故障'}}
+                                {{item.status === 0 ? '正在运行': item.status === 1 ? '运行完成' : item.status === 2 ? '未运行' : '出现故障'}}
                             </div>
                         </Col>
                         <Col>
-                            <div style="width: 138px; align-content: center">已运行时间</div>
-                            <div style="width: 138px; align-content: center">{{item.updated}}</div>
+                            <div style="width: 138px; align-content: center">开始运行时间</div>
+                            <div style="width: 138px; align-content: center">{{item.startTime ? item.startTime : '未开始'}}
+                            </div>
                         </Col>
                         <Col>
                             <a style="margin: 0 3px; color: #2d8cf0" @click="switchRun(index)">运行</a>
@@ -107,31 +119,28 @@
     import EditOperation from "./Operation/EditOperation";
     import OperationForm from "./Operation/OperationForm";
     import ExecuteOperationTask from "./Operation/ExecuteOperationTask";
+    import {deepClone} from "../../util/object.util";
+    import {errorMessage} from "../../util/message.util";
+    import LoadingIcon from "../../components/LoadingIcon";
+    import OperationInformation from "./Operation/OperationInformation";
 
     export default {
         name: "Operation",
-        components: {ExecuteOperationTask, OperationForm, EditOperation, ComponentTitle},
+        components: {
+            OperationInformation,
+            LoadingIcon, ExecuteOperationTask, OperationForm, EditOperation, ComponentTitle},
         data() {
             return {
+                spinShow: false,
                 addRunTask: false,
                 updateRunTask: false,
                 executeTask: false,
                 runInformation: false,
                 delConfirm: false,
-                runFormItem: {
-                    name: '计算机视觉',
-                    public: 0,
-                    status: true,
-                    groupId: 0,
-                    group: {name: '深度学习'},
-                    tagId: 0,
-                    tagList: [
-                        {id: 1, name: '推荐系统'},
-                        {id: 2, name: '分类算法'}
-                    ],
-                    git: 'https://github.com/alibaba/Sentinel',
-                    description: '这是使用神经网络实现实现的性能最优的视觉算法服务'
-                },
+                delConfirmIndex: -1,
+                addFormItem: {},
+                updateFormItem: {},
+                runtimeInfo: {},
                 editRunStyle: {
                     height: 'calc(100% - 55px)',
                     overflow: 'auto',
@@ -147,98 +156,126 @@
                     size: 10,
                     sizeOpts: [10, 20, 30, 40, 50]
                 },
-                tableColumns: [
-                    {
-                        title: '状态',
-                        key: 'status',
-                        render: (h, params) => {
-                            const row = params.row;
-                            const color = row.status === 0 ? 'success' : 'error';
-                            const text = row.status === 0 ? '激活' : '禁用';
-
-                            return h('Tag', {
-                                props: {
-                                    type: 'dot',
-                                    color: color
-                                }
-                            }, text);
-                        }
-                    },
-                    {title: '发布者', key: 'publisher'},
-                    {title: '更新日期', key: 'updated'}
-                ],
-                data: [
-                    {
-                        id: 1,
-                        name: '图像识别',
-                        description: '这是一个图像识别的组件',
-                        pay: 0,
-                        type: 0,
-                        status: 0,
-                        updated: '2020-04-30 00:00:00'
-                    },
-                    {
-                        id: 2,
-                        name: '支持向量机',
-                        description: '这是一个分类器',
-                        pay: 0,
-                        type: 0,
-                        status: 0,
-                        updated: '2020-04-30 00:00:00'
-                    },
-                    {
-                        id: 3,
-                        name: '文字识别',
-                        description: '这是一个神经网络服务',
-                        pay: 1,
-                        type: 0,
-                        status: 2,
-                        updated: '2020-04-30 00:00:00'
-                    }
-                ]
+                tableData: []
             }
         },
         methods: {
+            editRuntimeServiceCompleteTask() {
+                this.addRunTask = false
+                this.updateRunTask = false
+                this.loadTableData()
+            },
             searchRun() {
-
+                this.page.current = 1;
+                this.loadTableData()
             },
             resetSearchRun() {
-
+                Object.keys(this.searchForm).forEach(prop => this.searchForm[prop] = null)
             },
             switchRun(index) {
                 console.log(index)
                 this.executeTask = true;
             },
             showRunDetail(index) {
-                console.log(index);
                 this.runInformation = true;
+                this.runtimeInfo = deepClone(this.tableData[index])
+                this.$refs['runtimeInfoRef'].$emit('loadData', this.runtimeInfo.id)
             },
             addRun() {
                 this.addRunTask = true;
+
+                this.addFormItem = {
+                    name: null,
+                    type: 0,
+                    publicType: 1,
+                    status: 2,
+                    configId: null,
+                    datasourceId: null,
+                    memory: 256,
+                    calculate: 256,
+                    clusterFlag: 0,
+                    serviceNode: 3,
+                    loadBalanceFlag: 0,
+                    description: '',
+                    countCompleteTask: 0,
+                    protocolFormatIdList: []
+                }
             },
             updateRun(index) {
-                console.log(index);
                 this.updateRunTask = true;
+
+                let runtimeService = deepClone(this.tableData[index]);
+                console.log(runtimeService)
+                this.$refs['updateRuntimeRef'].$emit("changeServiceConfig", runtimeService.config.id)
+
+                let protocolFormatIdList = []
+                runtimeService.visualDataList.forEach(
+                    visualData => protocolFormatIdList.push(visualData.protocolFormatId))
+
+                runtimeService['protocolFormatIdList'] = protocolFormatIdList
+                if (runtimeService.config)
+                    runtimeService.configId = runtimeService.config.id
+                if (runtimeService.datasource)
+                    runtimeService.datasourceId = runtimeService.datasource.id
+
+                this.updateFormItem = runtimeService
             },
             removeRun(index) {
-                console.log(index);
-                this.delConfirm = true;
+                this.delConfirm = true
+                this.delConfirmIndex = index
             },
             deleteRun() {
+                let runtimeService = deepClone(this.tableData[this.delConfirmIndex]);
 
+                // 显示加载提示信息
+                let userId = this.$store.state.user.id
+                this.axios.delete(`/runtime-server/delete/${userId}/${runtimeService.id}`).then(({data}) => {
+                    console.log(data)
+                    // 关闭加载提示信息
+                    this.delConfirm = false
+                    this.loadTableData()
+                }).catch(error => {
+                    console.log(error)
+                    // 关闭加载提示信息
+                    this.delConfirm = false
+                    errorMessage(error, this)
+                });
             },
             // 切换页面
             changePage(page) {
                 this.page.current = page;
-                // this.loadTableData();
+                this.loadTableData();
             },
             changePageSize(pageSize) {
                 // 如果每页显示的数据发生改变，则还是从第一页开始查询
                 this.page.size = pageSize;
                 this.page.current = 1;
 
-                // this.loadTableData()
+                this.loadTableData()
             },
+            // 获取测试计划数据
+            loadTableData() {
+                let condition = deepClone(this.searchForm)
+                Object.assign(condition, this.page)
+                condition['userId'] = this.$store.state.user.id
+
+                // 显示加载提示信息
+                this.spinShow = true;
+                this.axios.post('/runtime-server/list', condition).then(({data}) => {
+                    // 关闭加载提示信息
+                    this.spinShow = false;
+                    this.tableData = data.data.data;
+                    this.page.total = data.data.total;
+                }).catch(error => {
+                    console.log(error);
+                    // 关闭加载提示信息
+                    this.spinShow = false;
+                    errorMessage(error, this);
+                });
+            }
+        },
+        mounted() {
+            this.loadTableData()
         }
     }
 </script>
