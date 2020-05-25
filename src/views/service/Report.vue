@@ -6,27 +6,13 @@
             <Spin fix v-if="spinShow">
                 <LoadingIcon></LoadingIcon>
             </Spin>
-            <Modal v-model="delBatchConfirm" width="360">
-                <p slot="header" style="color:#f60;text-align:center">
-                    <Icon type="ios-information-circle"></Icon>
-                    <span>删除确认</span>
-                </p>
-                <div style="text-align:center">
-                    <p>是否删除选中的报表？</p>
-                </div>
-                <div slot="footer">
-                    <Button type="error" size="large" long
-                            :loading="modalLoading" @click="deleteReportBatch()">删除
-                    </Button>
-                </div>
-            </Modal>
             <Modal v-model="delConfirm" width="360">
                 <p slot="header" style="color:#f60;text-align:center">
                     <Icon type="ios-information-circle"></Icon>
                     <span>删除确认</span>
                 </p>
                 <div style="text-align:center">
-                    <p>是否删除此报表？</p>
+                    <p>是否删除此报表模版？</p>
                 </div>
                 <div slot="footer">
                     <Button type="error" size="large" long
@@ -34,9 +20,10 @@
                     </Button>
                 </div>
             </Modal>
-            <Drawer :title="updateReportText" v-model="editReportOpenState" width="360"
+            <Drawer :title="updateReportText" v-model="editReportOpenState" width="1080"
                     :mask-closable="false" :styles="styles">
-
+                <EditReport ref="editReportRef" :form-item="editReportForm" :edit-type="editType"
+                            @completeTask="editReportCompleteTask"></EditReport>
             </Drawer>
 
             <Form ref="formInline" :model="searchForm">
@@ -49,7 +36,7 @@
                     </Col>
                     <Col span="8">
                         <FormItem label="服务名称：" prop="parent" label-position="left">
-                            <Input type="text" v-model="searchForm.service" placeholder="请输入"
+                            <Input type="text" v-model="searchForm.serviceName" placeholder="请输入"
                                    :style="{width: '252px'}"/>
                         </FormItem>
                     </Col>
@@ -70,16 +57,11 @@
                             :style="{width: '108px'}" icon="md-add">新增报表
                     </Button>
                 </Col>
-                <Col span="3">
-                    <Button @click="removeReportBatch()" :style="{width: '108px'}">
-                        <Icon type="ios-trash-outline" size="17"/>
-                        批量删除
-                    </Button>
-                </Col>
             </Row>
             <Table ref="reportTableRef" :data="tableData" :columns="tableColumns" stripe no-data-text="报表数据为空">
                 <template slot-scope="{ row, index }" slot="action">
-                    <Button type="primary" @click="exportReport(index)" :style="{width: '108px'}">
+                    <Button type="primary" size="small" @click="exportReport(index)"
+                            :style="{width: '80px', marginRight: '5px'}">
                         导出报表
                     </Button>
                     <Button type="warning" size="small" style="margin-right: 5px" @click="updateReport(index)">
@@ -105,32 +87,24 @@
     import {errorMessage, renderPopTip} from "../../util/message.util";
     import {deepClone} from "../../util/object.util";
     import LoadingIcon from "../../components/LoadingIcon";
+    import EditReport from "./report/EditReport";
 
     export default {
         name: "Report",
-        components: {LoadingIcon, ComponentTitle},
+        components: {EditReport, LoadingIcon, ComponentTitle},
         data() {
             return {
                 spinShow: false,
                 delConfirm: false,
-                delBatchConfirm: false,
                 deletedReportIndex: null,
                 modalLoading: false,
                 editReportOpenState: false,
                 updateReportText: '',
-                tableData: [],
                 editType: 'add',
-                editReportForm: {
-                    id: null,
-                    name: null,
-                    enName: null,
-                    authorityList: [],
-                    status: 0,
-                    description: null
-                },
+                editReportForm: {},
                 searchForm: {
                     name: null,
-                    service: null
+                    serviceName: null
                 },
                 page: {
                     total: 100,
@@ -140,19 +114,36 @@
                 },
                 tableColumns: [
                     {type: 'selection', width: 60, align: 'center', fixed: 'left'},
-                    {title: '报表名称', key: 'name', width: 180, resizable: true},
-                    {title: '服务名称', key: 'name', width: 180, resizable: true},
-                    {title: '创建日期', key: 'created', width: 180, resizable: true},
-                    {title: '更新日期', key: 'updated', width: 180, resizable: true},
+                    {title: '报表名称', key: 'name', width: 180, resizable: true, tooltip: true},
                     {
-                        title: '描述信息', key: 'description', width: 180, resizable: true,
+                        title: '服务名称', key: 'runtimeService', width: 180, resizable: true,
                         render: (h, params) => {
                             let row = params.row;
-                            return renderPopTip(h, row.description);
+                            if (!row.runtimeService) return h('div', '未选择服务')
+
+                            return renderPopTip(h, row.runtimeService.name);
                         }
                     },
-                    {title: '操作', slot: 'action', width: 150, align: 'center', fixed: 'right'}
+                    {
+                        title: '模版状态', key: 'status', width: 150, resizable: true,
+                        render: (h, params) => {
+                            const row = params.row;
+                            const color = row.status === 0 ? 'success' : 'error';
+                            const text = row.status === 0 ? '启用' : '禁用';
+
+                            return h('Tag', {
+                                props: {
+                                    type: 'dot',
+                                    color: color
+                                }
+                            }, text);
+                        }
+                    },
+                    {title: '创建日期', key: 'created', width: 180, resizable: true},
+                    {title: '更新日期', key: 'updated', width: 180, resizable: true},
+                    {title: '操作', slot: 'action', width: 218, align: 'center', fixed: 'right'}
                 ],
+                tableData: [],
                 styles: {
                     height: 'calc(100% - 55px)',
                     overflow: 'auto',
@@ -164,9 +155,6 @@
         methods: {
             editReportCompleteTask() {
                 this.editReportOpenState = false;
-                this.loadTableData();
-            },
-            addReportSuccess() {
                 this.loadTableData();
             },
             searchReport() {
@@ -181,7 +169,26 @@
                 this.editType = 'add';
                 this.updateReportText = '新增报表';
 
-                this.$refs.editReport.$emit('addReportClick');
+                this.editReportForm = {
+                    name: '',
+                    status: 0,
+                    serviceId: null,
+                    description: '',
+                    formDynamic: {
+                        step: 0,
+                        visualDataList: [],
+                        items: [{
+                            step: 0,
+                            title: '',
+                            visualDataId: null,
+                            abscissa: 0,
+                            ordinate: 0,
+                            abscissaSpan: 0,
+                            ordinateSpan: 0,
+                            description: ''
+                        }]
+                    }
+                }
             },
             exportReport(index) {
                 console.log(index)
@@ -192,23 +199,15 @@
                 this.updateReportText = '更新报表';
                 let report = deepClone(this.tableData[index]);
                 console.log(report)
-
-                let authorityIdList = []
-                let authorityParentIdList = []
-                report.authorityList.forEach(authority => {
-                    if (authority.parentId === 0) {
-                        authorityParentIdList.push(authority.id);
-                        return;
-                    }
-
-                    authorityIdList.push(authority.id)
-                });
-                // report['authorityIdList'] = authorityIdList;
-                // report['authorityParentIdList'] = authorityParentIdList;
+                report.formDynamic = {
+                    step: 0,
+                    visualDataList: report.runtimeService.visualDataList,
+                    items: report.reportItemList
+                }
+                if (report.runtimeService)
+                    report.serviceId = report.runtimeService.id
 
                 this.editReportForm = report;
-                // 触发事件
-                this.$refs.editReport.$emit('updateReportClick', authorityParentIdList, authorityIdList);
             },
             // 获取选中的表格中的数据的id
             getTableSelection() {
@@ -217,30 +216,6 @@
                 selection.forEach(item => selectIdList.push(item.id))
                 return selectIdList;
             },
-            removeReportBatch() {
-                let tableSelectionIdList = this.getTableSelection();
-                if (tableSelectionIdList.length === 0) {
-                    this.$Message.warning('请选择需要删除的报表');
-                    return;
-                }
-
-                this.delBatchConfirm = true;
-            },
-            deleteReportBatch() {
-                let tableSelectionIdList = this.getTableSelection();
-                console.log(tableSelectionIdList);
-                if (tableSelectionIdList.length === 0) return;
-
-                this.axios.post(`/report-server/del/list`, tableSelectionIdList).then(({data}) => {
-                    this.delBatchConfirm = false;
-                    console.log(data);
-                    this.loadTableData();
-                }).catch(error => {
-                    this.delBatchConfirm = false;
-                    console.log(error)
-                    errorMessage(error, this);
-                })
-            },
             remove(index) {
                 console.log(index);
                 this.deletedReportIndex = index;
@@ -248,8 +223,9 @@
             },
             deleteReport() {
                 let report = this.tableData[this.deletedReportIndex];
+                let userId = this.$store.state.user.id
                 console.log(report);
-                this.axios.delete(`/report-server/del/${report.id}`).then(({data}) => {
+                this.axios.delete(`/report-server/delete/${userId}/${report.id}`).then(({data}) => {
                     console.log(data);
                     this.loadTableData();
                     this.delConfirm = false;
@@ -275,19 +251,23 @@
             loadTableData() {
                 let condition = this.searchForm;
                 Object.assign(condition, this.page)
+                condition['userId'] = this.$store.state.user.id
                 // 显示加载提示信息
-                // this.spinShow = true;
+                this.spinShow = true;
                 // 加载报表列表数据
-                this.axios.post('', condition).then(({data}) => {
+                this.axios.post('/report-server/list', condition).then(({data}) => {
                     this.tableData = data.data.data;
                     this.page.total = data.data.total;
-                    // this.spinShow = false;
+                    this.spinShow = false;
                 }).catch(error => {
                     console.log(error)
-                    // this.spinShow = false;
+                    this.spinShow = false;
                     errorMessage(error, this);
                 });
             }
+        },
+        mounted() {
+            this.loadTableData()
         }
     }
 </script>
