@@ -16,9 +16,12 @@
                 </Col>
             </Row>
             <Row :style="{height: '38px'}" type="flex" align="middle">
-                <Col span="12">
+                <Col span="12" v-if="objectType === 'model' && reportInfo.version">
                     测试模型: {{reportInfo.version.model.name}}/
                     {{reportInfo.version.name}}:{{versionTagList[reportInfo.version.type]}}
+                </Col>
+                <Col span="12" v-if="objectType === 'service' && reportInfo.config">
+                    服务配置: {{reportInfo.config.name}}
                 </Col>
                 <Col span="12">
                     触发类型:
@@ -28,8 +31,9 @@
                 </Col>
             </Row>
             <Row :style="{height: '38px'}" type="flex" align="middle">
-                <Col span="12">
+                <Col span="12" v-if="reportInfo.datasource">
                     数据源: {{reportInfo.datasource.name}}
+
                 </Col>
             </Row>
             <Row :style="{height: '38px'}" type="flex" align="middle">
@@ -51,7 +55,7 @@
 
     export default {
         name: "TestReport",
-        props: ['reportInfo'],
+        props: ['reportInfo', 'objectType'],
         data() {
             return {
                 versionTagList: ['lasted', 'GA(最新)', 'GA', 'Beta', 'Snapshot'],

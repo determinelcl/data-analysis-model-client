@@ -20,9 +20,9 @@
         </FormItem>
 
         <FormItem label="服务" prop="serviceId" v-if="objectType === 'service'">
-            <Select v-model="formItem.targetId" placeholder="选择服务配置">
+            <Select v-model="formItem.targetId" placeholder="选择服务配置" @on-change="changeServiceConfig">
                 <Option v-for="serviceConfig in serviceConfigList" :key="serviceConfig.id"
-                        :value="serviceConfig.id" @on-change="changeServiceConfig">{{serviceConfig.name}}
+                        :value="serviceConfig.id">{{serviceConfig.name}}
                 </Option>
             </Select>
         </FormItem>
@@ -276,6 +276,35 @@
             this.loadDatasourceList()
             if (this.objectType === 'model') this.loadModelList()
             else if (this.objectType === 'service') this.loadServiceConfigurationList()
+
+            this.$on('changeModelVersion', (versionId, selectedData) => {
+                // 加载模型的版本信息
+                this.axios.get(`/model-server/version/list/${selectedData[0]}`).then(({data}) => {
+                    if (!data.data)
+                        return;
+
+                    if (data.data.length === 0) return;
+                    this.versionList = data.data
+
+                    this.changeModelVersion(versionId, selectedData)
+                }).catch(error => {
+                    console.log(error)
+                    errorMessage(error, this)
+                });
+            })
+
+            this.$on('changeServiceConfig', (configId) => {
+                let param = {paged: false, userId: this.$store.state.user.id};
+
+                // 查询用户自己的运行时服务
+                this.axios.post('/configuration-server/list', param).then(({data}) => {
+                    this.serviceConfigList = data.data.data;
+                    this.changeServiceConfig(configId)
+                }).catch(error => {
+                    console.log(error)
+                    errorMessage(error, this)
+                });
+            })
         }
     }
 </script>

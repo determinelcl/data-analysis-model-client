@@ -5,17 +5,19 @@
         </ComponentTitle>
 
         <div :style="this.$store.state.style.contentStyle">
-            <Spin fix v-if="spinShow"><LoadingIcon></LoadingIcon></Spin>
+            <Spin fix v-if="spinShow">
+                <LoadingIcon></LoadingIcon>
+            </Spin>
             <Drawer :title="editTestTaskText" v-model="editTestTask" width="720"
                     :mask-closable="false" :styles="editTestStyle">
-                <EditTest :object-type="objectType.type" :edit-type="editType" :form-item="formItem"
+                <EditTest ref="editTestRef" :object-type="objectType.type" :edit-type="editType" :form-item="formItem"
                           @completeTask="editTestPlanCompleteTask"></EditTest>
             </Drawer>
             <Drawer title="执行测试计划" v-model="execTestTask" width="720" :mask-closable="false">
                 <ExecuteTestTask></ExecuteTestTask>
             </Drawer>
             <Drawer v-model="testReport" width="720" :closable="false">
-                <TestReport ref="testReportRef" :report-info="reportInfo"></TestReport>
+                <TestReport ref="testReportRef" :report-info="reportInfo" :object-type="objectType.type"></TestReport>
             </Drawer>
             <Modal v-model="delConfirm" width="360">
                 <p slot="header" style="color:#f60;text-align:center">
@@ -49,7 +51,8 @@
                     </Col>
                     <Col span="5">
                         <FormItem label="触发类型：" prop="version" label-position="left">
-                            <Select v-model="searchForm.triggerType" filterable allow-create clearable style="width: 100px">
+                            <Select v-model="searchForm.triggerType" filterable allow-create clearable
+                                    style="width: 100px">
                                 <Option :value="0">自动</Option>
                                 <Option :value="1">手动</Option>
                             </Select>
@@ -82,7 +85,8 @@
                         <Col>
                             <div class="list-description">状态</div>
                             <div :style="{width: '50px', alignContent: 'center', color: `${item.status === 0 ? '#19be6b': item.status === 1 ? '#ff9900' : item.status === 2 ? '#2d8cf0' : '#ed4014'}` }">
-                                {{item.status === 0 ? '成功': item.status === 1 ? '未开始' : item.status === 2 ? '#进行中' : '#失败'}}
+                                {{item.status === 0 ? '成功': item.status === 1 ? '未开始' : item.status === 2 ? '#进行中' :
+                                '#失败'}}
                             </div>
                         </Col>
                         <Col>
@@ -93,8 +97,11 @@
                         </Col>
                         <Col>
                             <div style="width: 138px; align-content: center">测试计划日期</div>
-                            <div style="width: 138px; align-content: center" v-if="item.triggerType === 0">{{item.triggerTime}}</div>
-                            <div style="width: 138px; align-content: center" v-if="item.triggerType === 1">手动触发测试计划</div>
+                            <div style="width: 138px; align-content: center" v-if="item.triggerType === 0">
+                                {{item.triggerTime}}
+                            </div>
+                            <div style="width: 138px; align-content: center" v-if="item.triggerType === 1">手动触发测试计划
+                            </div>
                         </Col>
                         <Col>
                             <div style="width: 138px; align-content: center">创建日期</div>
@@ -233,7 +240,13 @@
                 console.log(testPlan)
 
                 // 变换对象的参数
-                testPlan['model'] = [testPlan.version.modelId, testPlan.version.id]
+                if (this.objectType.type === 'model') {
+                    testPlan['model'] = [testPlan.version.modelId, testPlan.version.id]
+                    this.$refs['editTestRef'].$emit("changeModelVersion",  testPlan['model'], testPlan['model'])
+                } else {
+                    this.$refs['editTestRef'].$emit("changeServiceConfig", testPlan.config.id)
+                }
+
                 let protocolFormatIdList = []
                 testPlan.visualDataList.forEach(visualData => protocolFormatIdList.push(visualData.protocolFormatId))
                 testPlan['protocolFormatIdList'] = protocolFormatIdList
