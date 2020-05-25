@@ -1,75 +1,128 @@
 <template>
-    <Form ref="formItem" :model="formItem" :rules="ruleValidate" :label-width="100">
+    <Form ref="formItem" :model="formItem" :label-width="100">
         <FormItem label="服务名称" prop="name">
-            <Input v-model="formItem.name" placeholder="请输入计划名称"></Input>
+            <Input v-model="formItem.name" placeholder="请输入服务配置名称"></Input>
+        </FormItem>
+        <FormItem label="公开类型">
+            <RadioGroup v-model="formItem.publicType">
+                <Radio :label="0">公开</Radio>
+                <Radio :label="1">私有</Radio>
+            </RadioGroup>
         </FormItem>
         <FormItem label="状态">
-            <i-switch v-model="formItem.status" size="large" true-color="#13ce66" false-color="#ff4949">
+            <i-switch v-model="configurationStatus" size="large" true-color="#13ce66" false-color="#ff4949">
                 <span slot="open">启用</span>
                 <span slot="close">禁用</span>
             </i-switch>
         </FormItem>
-        <FormItem label="模型" prop="city">
-            <ModelProcessForm></ModelProcessForm>
+        <FormItem label="模型" prop="model">
+            <ModelProcessForm :form-dynamic="formItem.formDynamic"></ModelProcessForm>
         </FormItem>
-        <FormItem label="描述" prop="desc">
-            <Input v-model="formItem.desc" type="textarea" :autosize="{minRows: 2,maxRows: 5}"
+        <FormItem label="描述" prop="description">
+            <Input v-model="formItem.description" type="textarea" :autosize="{minRows: 2,maxRows: 5}"
                    placeholder="请输入测试计划的说明信息"></Input>
         </FormItem>
         <FormItem>
-            <Button type="primary" @click="handleSubmit('formItem')">提交</Button>
-            <Button @click="handleReset('formItem')" style="margin-left: 8px">重置</Button>
+            <Button type="primary" @click="handleAdd()" v-if="editType === 'add'">提交</Button>
+            <Button type="primary" @click="handleUpdate()" v-if="editType === 'update'">更新</Button>
+            <Button @click="handleReset()" style="margin-left: 8px">重置</Button>
         </FormItem>
     </Form>
 </template>
 
 <script>
     import ModelProcessForm from "./ModelProcessForm";
+    import {deepClone} from "../../../util/object.util";
+    import {errorMessage} from "../../../util/message.util";
+
     export default {
         name: "EditConfiguration",
         components: {ModelProcessForm},
+        props: {
+            formItem: {},
+            editType: {
+                type: String,
+                default: 'add'
+            }
+        },
         data() {
-            return {
-                formItem: {
-                    name: '',
-                    mail: '',
-                    city: '',
-                    gender: '',
-                    interest: [],
-                    date: '',
-                    report: true,
-                    time: '',
-                    desc: ''
+            return {}
+        },
+        computed: {
+            configurationStatus: {
+                get() {
+                    return this.formItem.status === 0
                 },
-                ruleValidate: {
-                    name: [
-                        {required: true, message: 'The name cannot be empty', trigger: 'blur'}
-                    ],
-                    date: [
-                        {required: true, type: 'date', message: 'Please select the date', trigger: 'change'}
-                    ],
-                    time: [
-                        {required: true, type: 'string', message: 'Please select time', trigger: 'change'}
-                    ],
-                    desc: [
-                        {required: true, message: 'Please enter a personal introduction', trigger: 'blur'},
-                        {type: 'string', min: 20, message: 'Introduce no less than 20 words', trigger: 'blur'}
-                    ]
+                set(status) {
+                    this.formItem.status = status ? 0 : 1
                 }
             }
         },
         methods: {
-            handleSubmit(name) {
-                this.$refs[name].validate((valid) => {
-                    if (valid) {
-                        this.$Message.success('Success!');
-                    } else {
-                        this.$Message.error('Fail!');
-                    }
+            handleAdd() {
+                let item = deepClone(this.formItem);
+                item['userId'] = this.$store.state.user.id
+                item.formDynamic.items.forEach(makeUp => {
+                    makeUp.id = null
+                    makeUp.protocolTransFlag = makeUp.protocolTransfer ? 0 : 1
+                    makeUp.modelVersionId = makeUp.model[makeUp.model.length - 1]
+                    makeUp.protocolTransFormat = JSON.stringify(makeUp.format)
                 })
+
+                item.makeUpList = item.formDynamic.items
+
+                // 查询用户自己的运行时服务
+                this.axios.post('/configuration-server/add', item).then(({data}) => {
+                    console.log(data)
+                    this.$emit('completeTask')
+                }).catch(error => {
+                    console.log(error)
+                    errorMessage(error, this)
+                });
             },
-            handleReset(name) {
-                this.$refs[name].resetFields();
+            handleUpdate() {
+                let item = deepClone(this.formItem);
+                item['userId'] = this.$store.state.user.id
+
+                item.formDynamic.items.forEach(makeUp => {
+                    makeUp.id = null
+                    makeUp.protocolTransFlag = makeUp.protocolTransfer ? 0 : 1
+                    makeUp.modelVersionId = makeUp.model[makeUp.model.length - 1]
+
+                    if (!makeUp.protocolTransfer || !makeUp.format) return
+                    makeUp.protocolTransFormat = JSON.stringify(makeUp.format)
+                })
+
+                item.makeUpList = item.formDynamic.items
+
+                // 查询用户自己的运行时服务
+                this.axios.put('/configuration-server/update', item).then(({data}) => {
+                    console.log(data)
+                    this.$emit('completeTask')
+                }).catch(error => {
+                    console.log(error)
+                    errorMessage(error, this)
+                });
+            },
+            handleReset() {
+                this.formItem = {
+                    name: '',
+                    publicType: 0,
+                    status: 0,
+                    gender: '',
+                    description: '',
+                    formDynamic: {
+                        step: 0,
+                        items: [{
+                            step: 0,
+                            model: [],
+                            protocolTransfer: false,
+                            protocolTransFlag: 1,
+                            format: {},
+                            protocolTransFormat: ''
+                        }]
+                    }
+                }
             }
         }
     }

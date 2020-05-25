@@ -6,7 +6,8 @@
 
             <Drawer :title="editServiceText" v-model="editService" width="720"
                     :mask-closable="false" :styles="editServiceStyle">
-                <EditConfiguration></EditConfiguration>
+                <EditConfiguration :form-item="configurationFormItem" :edit-type="editType"
+                                   @completeTask="editConfigurationCompleteTask"></EditConfiguration>
             </Drawer>
             <Modal v-model="delConfirm" width="360">
                 <p slot="header" style="color:#f60;text-align:center">
@@ -46,7 +47,7 @@
                 </Col>
             </Row>
             <List>
-                <ListItem v-for="(item, index) in data" :key="item.id">
+                <ListItem v-for="(item, index) in tableData" :key="item.id">
                     <ListItemMeta :title="item.name" :description="item.description"/>
                     <Row type="flex" justify="center" align="middle" :gutter="38"
                          :style="{color: 'rgba(0,0,0,.45)', height: '100%'}">
@@ -57,9 +58,9 @@
                             </div>
                         </Col>
                         <Col>
-                            <div style="width: 80px;">测试状态</div>
-                            <div :style="{width: '80px', alignContent: 'center', color: `${item.test === 0 ? '#19be6b': '#ed4014'}` }">
-                                {{item.test === 0 ? '已通过': '未测试'}}
+                            <div style="width: 80px;">公开类型</div>
+                            <div :style="{width: '80px', alignContent: 'center', color: `${item.publicType === 0 ? '#19be6b': '#ff9900'}` }">
+                                {{item.publicType === 0 ? '公开': '私有'}}
                             </div>
                         </Col>
                         <Col>
@@ -88,6 +89,8 @@
 <script>
     import ComponentTitle from "../../components/ComponentTitle";
     import EditConfiguration from "./configuration/EditConfiguration";
+    import {deepClone} from "../../util/object.util";
+    import {errorMessage} from "../../util/message.util";
 
     export default {
         name: "Configuration",
@@ -95,22 +98,11 @@
         data() {
             return {
                 editService: false,
+                editType: 'add',
                 editServiceText: '',
                 delConfirm: false,
-                serviceFormItem: {
-                    name: '计算机视觉',
-                    public: 0,
-                    status: true,
-                    groupId: 0,
-                    group: {name: '深度学习'},
-                    tagId: 0,
-                    tagList: [
-                        {id: 1, name: '推荐系统'},
-                        {id: 2, name: '分类算法'}
-                    ],
-                    git: 'https://github.com/alibaba/Sentinel',
-                    description: '这是使用神经网络实现实现的性能最优的视觉算法服务'
-                },
+                delConfirmIndex: -1,
+                configurationFormItem: {},
                 editServiceStyle: {
                     height: 'calc(100% - 55px)',
                     overflow: 'auto',
@@ -126,89 +118,126 @@
                     size: 10,
                     sizeOpts: [10, 20, 30, 40, 50]
                 },
-                tableColumns: [
-                    {
-                        title: '状态',
-                        key: 'status',
-                        render: (h, params) => {
-                            const row = params.row;
-                            const color = row.status === 0 ? 'success' : 'error';
-                            const text = row.status === 0 ? '激活' : '禁用';
-
-                            return h('Tag', {
-                                props: {
-                                    type: 'dot',
-                                    color: color
-                                }
-                            }, text);
-                        }
-                    },
-                    {title: '发布者', key: 'publisher'},
-                    {title: '更新日期', key: 'updated'}
-                ],
-                data: [
-                    {
-                        id: 1,
-                        name: '图像识别',
-                        description: '这是一个图像识别的组件',
-                        status: 0,
-                        test: 0,
-                        updated: '2020-04-30 00:00:00'
-                    },
-                    {
-                        id: 2,
-                        name: '支持向量机',
-                        description: '这是一个分类器',
-                        status: 0,
-                        test: 0,
-                        updated: '2020-04-30 00:00:00'
-                    },
-                    {
-                        id: 3,
-                        name: '文字识别',
-                        description: '这是一个神经网络服务',
-                        status: 1,
-                        test: 1,
-                        updated: '2020-04-30 00:00:00'
-                    }
-                ]
+                tableData: []
             }
         },
         methods: {
+            editConfigurationCompleteTask() {
+                this.editService = false;
+                this.loadTableData()
+            },
             searchService() {
-
+                this.page.current = 1;
+                this.loadTableData();
             },
             resetSearchService() {
-
+                Object.keys(this.searchForm).forEach(prop => this.searchForm[prop] = null)
             },
             addService() {
                 this.editServiceText = '新增服务';
+                this.editType = 'add';
                 this.editService = true;
+
+                this.configurationFormItem = {
+                    name: '',
+                    publicType: 0,
+                    status: 0,
+                    gender: '',
+                    description: '',
+                    formDynamic: {
+                        step: 0,
+                        items: [{
+                            step: 0,
+                            model: [],
+                            protocolTransfer: false,
+                            protocolTransFlag: 1,
+                            format: {},
+                            protocolTransFormat: ''
+                        }]
+                    }
+                }
             },
             updateService(index) {
-                console.log(index);
-                this.editServiceText = '更新服务';
-                this.editService = true;
+                this.editServiceText = '更新服务'
+                this.editType = 'update'
+                this.editService = true
+
+                let item = deepClone(this.tableData[index]);
+                item.makeUpList = item.makeUpList.sort((a, b) => a.step - b.step);
+
+                let step = 0
+                item.makeUpList.forEach(makeUp => {
+                    makeUp.step = step++
+                    makeUp.model = [makeUp.version.modelId, makeUp.version.id]
+                    makeUp.protocolTransfer = (makeUp.protocolTransFlag === 0)
+
+                    if (!makeUp.protocolTransFormat) return
+                    let item = eval('(' + makeUp.protocolTransFormat + ')');
+                    if (item instanceof String)
+                        makeUp.format = eval('(' + item + ')')
+                    else makeUp.format = item
+                })
+
+                item.formDynamic = {
+                    step: 0,
+                    items: item.makeUpList
+                }
+                this.configurationFormItem = item;
             },
             removeService(index) {
-                console.log(index);
-                this.delConfirm = true;
+                this.delConfirm = true
+                this.delConfirmIndex = index
             },
             deleteService() {
+                let configuration = this.tableData[this.delConfirmIndex];
 
+                console.log(configuration);
+                let userId = this.$store.state.user.id;
+                this.axios.delete(`/configuration-server/delete/${userId}/${configuration.id}`).then(({data}) => {
+                    console.log(data);
+                    this.loadTableData();
+                    this.delConfirm = false;
+                }).catch(error => {
+                    this.delConfirm = false;
+                    console.log(error)
+                    errorMessage(error, this);
+                })
             },
             // 切换页面
             changePage(page) {
                 this.page.current = page;
-                // this.loadTableData();
+                this.loadTableData();
             },
             changePageSize(pageSize) {
                 // 如果每页显示的数据发生改变，则还是从第一页开始查询
                 this.page.size = pageSize;
                 this.page.current = 1;
 
-                // this.loadTableData()
+                this.loadTableData()
             },
+            // 获取测试计划数据
+            loadTableData() {
+                let condition = deepClone(this.searchForm)
+                Object.assign(condition, this.page)
+                condition['userId'] = this.$store.state.user.id
+
+                // 显示加载提示信息
+                this.spinShow = true;
+                this.axios.post('/configuration-server/list', condition).then(({data}) => {
+                    // 关闭加载提示信息
+                    this.spinShow = false;
+                    this.tableData = data.data.data;
+                    this.page.total = data.data.total;
+                }).catch(error => {
+                    console.log(error);
+                    // 关闭加载提示信息
+                    this.spinShow = false;
+                    errorMessage(error, this);
+                });
+            }
+        },
+        mounted() {
+            this.loadTableData()
         }
     }
 </script>
