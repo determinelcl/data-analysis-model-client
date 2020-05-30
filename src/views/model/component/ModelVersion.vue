@@ -188,6 +188,11 @@
             handleModelSuccess(response, file, fileList) {
                 this.modelUrl = response.data
                 this.modelSize = file.size
+
+                // 上传的模型的url
+                this.formItem['modelUrl'] = this.modelUrl;
+                // 模型文件的大小
+                this.formItem['modelSize'] = this.modelSize;
                 console.log(response)
                 console.log(file)
                 console.log(fileList)
@@ -200,6 +205,11 @@
             handleImgSuccess(response, file, fileList) {
                 this.imageUrl = response.data
                 this.imageSize = file.size
+
+                // 模型的版权图片的url
+                this.formItem['copyrightImg'] = this.imageUrl;
+                // 模型版权图片的大小
+                this.formItem['copyrightImgSize'] = this.imageSize;
                 console.log(response)
                 console.log(file)
                 console.log(fileList)

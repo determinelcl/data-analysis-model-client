@@ -14,7 +14,7 @@
                           @completeTask="editTestPlanCompleteTask"></EditTest>
             </Drawer>
             <Drawer title="执行测试计划" v-model="execTestTask" width="720" :mask-closable="false">
-                <ExecuteTestTask></ExecuteTestTask>
+                <ExecuteTestTask :form-item="formItem"></ExecuteTestTask>
             </Drawer>
             <Drawer v-model="testReport" width="720" :closable="false">
                 <TestReport ref="testReportRef" :report-info="reportInfo" :object-type="objectType.type"></TestReport>
@@ -208,7 +208,7 @@
                 Object.keys(this.searchForm).forEach(prop => this.searchForm[prop] = null)
             },
             execTest(index) {
-                console.log(index);
+                this.formItem = deepClone(this.tableData[index])
                 this.execTestTask = true;
             },
             showTestDetail(index) {
@@ -318,6 +318,22 @@
         },
         mounted() {
             this.loadTableData()
+
+            let userId = this.$store.state.user.id;
+
+            // 打开一个 web socket
+            let ws = new WebSocket(`ws://localhost:8382/server/${userId}`);
+            ws.onopen = function() {
+                // Web Socket 已连接上，使用 send() 方法发送数据
+                ws.send("测试发送");
+                console.log('open');
+            };
+            ws.onmessage = function (e) {
+                console.log('message', e.data);
+            };
+            ws.onclose = function() {
+                console.log('close');
+            };
         }
     }
 </script>

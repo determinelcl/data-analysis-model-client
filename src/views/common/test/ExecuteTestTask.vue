@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h3>沿海城市气象数据分析组件测试计划</h3>
+        <h3 v-if="formItem">{{formItem.name}}</h3>
         <Row type="flex" :gutter="30" style="margin-top: 10px">
             <Col>
                 状态：测试进行中
@@ -16,7 +16,7 @@
             </Col>
         </Row>
         <br/>
-        <Button type="primary" @click="startTest()" disabled>测试进行中</Button>
+        <Button type="primary" @click="startTest()" >开始测试</Button>
         <div style="margin: 16px 0; height: auto">
             <Progress :percent="90" :stroke-color="['#108ee9', '#87d068']" status="active"/>
             <Scroll height="500" class="test-task-output">
@@ -71,10 +71,13 @@
 
 <script>
     import Chart from "../../../components/Chart";
+    import {errorMessage} from "../../../util/message.util";
+    import {deepClone} from "../../../util/object.util";
 
     export default {
         name: "ExecuteTestTask",
         components: {Chart},
+        props: ['formItem'],
         data() {
             return {
                 dataCPU: [],
@@ -211,7 +214,17 @@
         },
         methods: {
             startTest() {
+                let testPlan = deepClone(this.formItem)
+                // 显示加载提示信息
+                let userId = this.$store.state.user.id
+                this.axios.patch(`/test-server/start/${userId}/${testPlan.id}`).then(({data}) => {
+                    console.log(data)
 
+                    this.loadTableData()
+                }).catch(error => {
+                    console.log(error)
+                    errorMessage(error, this)
+                });
             },
             randomData() {
                 this.now = new Date(+this.now + this.oneDay);

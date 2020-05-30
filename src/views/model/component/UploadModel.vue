@@ -26,7 +26,8 @@
             </div>
             <div v-if="current === 500">
                 <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 24px;">
-                    <Icon type="ios-close" size="65" :color="'#ffffff'" style=" background-color: #ed4014; border-radius: 50px"/>
+                    <Icon type="ios-close" size="65" :color="'#ffffff'"
+                          style=" background-color: #ed4014; border-radius: 50px"/>
                 </div>
                 <div style="color: #17233d; font-weight: 500; font-size: 24px; line-height: 32px; margin-bottom: 16px; text-align: center">
                     提交失败
@@ -124,6 +125,10 @@
         },
         mounted() {
             this.$on('loadData', () => {
+                (d => {
+                    for (let t = Date.now(); Date.now() - t <= d;) ;
+                })(1000)
+
                 this.current = 0
                 this.$refs.modelFormRef.$emit('loadClassificationData')
             })

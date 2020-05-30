@@ -65,7 +65,7 @@
                         key: 'ioType',
                         width: 100,
                         render: (h, params) => {
-                            let outputType = ['图表', '文本', '图片', '矩阵', '语音', '流数据']
+                            let outputType = ['SQL', '图表', '文本', '图片', '矩阵', '语音', '流数据']
                             return h('div', outputType[params.row.ioType])
                         }
                     },

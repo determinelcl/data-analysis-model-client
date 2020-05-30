@@ -229,8 +229,9 @@
             },
             deleteModel() {
                 let modelId = this.tableData[this.delConfirmIndex].id;
+                let userId = this.$store.state.user.id;
 
-                this.axios.delete(`/model-server/delete/${modelId}`).then(({data}) => {
+                this.axios.delete(`/model-server/delete/${userId}/${modelId}`).then(({data}) => {
                     console.log(data)
                     this.delConfirm = false;
                     this.loadTableData()
